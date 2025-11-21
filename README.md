@@ -179,6 +179,80 @@ pnpm prisma:studio
 pnpm db:seed
 ```
 
+## 🚀 Déploiement sur Vercel
+
+### Prérequis
+
+- Compte Vercel
+- Base de données PostgreSQL accessible publiquement (ex: Neon, Supabase, Railway)
+- Variables d'environnement configurées
+
+### Étapes de déploiement
+
+1. **Installer Vercel CLI (optionnel)**
+
+```bash
+pnpm add -g vercel
+```
+
+2. **Configurer les variables d'environnement sur Vercel**
+
+Dans le dashboard Vercel, allez dans **Settings > Environment Variables** et ajoutez :
+
+```env
+NODE_ENV=production
+DATABASE_URL=postgresql://user:password@host:5432/database?schema=public
+JWT_SECRET=your-production-jwt-secret-min-32-chars
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=your-production-refresh-secret-min-32-chars
+JWT_REFRESH_EXPIRES_IN=30d
+CORS_ORIGIN=https://your-frontend-domain.com
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+API_PREFIX=/api
+LOG_LEVEL=info
+```
+
+3. **Déployer via Git (recommandé)**
+
+```bash
+# Connecter votre repo GitHub/GitLab/Bitbucket à Vercel
+# Vercel détectera automatiquement le projet et le déploiera
+```
+
+4. **Ou déployer via CLI**
+
+```bash
+vercel --prod
+```
+
+### Configuration automatique
+
+Le projet est configuré avec :
+
+- **`postinstall` script** : Génère automatiquement le client Prisma après l'installation
+- **`vercel.json`** : Configuration de build et de routing
+- **`.vercelignore`** : Exclusion des fichiers inutiles
+
+### Migration de la base de données en production
+
+Après le premier déploiement, exécutez les migrations :
+
+```bash
+# Via Vercel CLI
+vercel env pull .env.production
+pnpm db:migrate:prod
+```
+
+Ou configurez un script de build personnalisé dans `vercel.json` si nécessaire.
+
+### Notes importantes
+
+- ⚠️ **Ne jamais commit** les fichiers `.env` avec des secrets
+- 🔒 Utilisez des secrets forts pour `JWT_SECRET` et `JWT_REFRESH_SECRET` en production
+- 🗄️ Assurez-vous que votre base de données PostgreSQL est accessible depuis Vercel
+- 🌐 Configurez correctement `CORS_ORIGIN` avec votre domaine frontend
+
 ## 📝 Utilisation des classes d'erreurs
 
 Le backend dispose d'un système de gestion d'erreurs centralisé avec des classes spécifiques:
@@ -210,26 +284,26 @@ if (email already exists) {
 ### Middleware d'authentification
 
 ```typescript
-import { authenticate, authorize } from '../middlewares/auth';
+import { authenticate, authorize } from '../middlewares/auth'
 
 // Route protégée - nécessite authentification
-router.get('/protected', authenticate, controller);
+router.get('/protected', authenticate, controller)
 
 // Route avec autorisation par rôle
-router.delete('/admin', authenticate, authorize('ADMIN'), controller);
+router.delete('/admin', authenticate, authorize('ADMIN'), controller)
 
 // Route avec auth optionnelle
-router.get('/public', authenticateOptional, controller);
+router.get('/public', authenticateOptional, controller)
 ```
 
 ### Utilisation dans les controllers
 
 ```typescript
 export const getMe = asyncHandler(async (req: Request, res: Response) => {
-  // req.user contient l'utilisateur authentifié
-  const user = req.user;
-  sendSuccess(res, user, 'Utilisateur récupéré');
-});
+	// req.user contient l'utilisateur authentifié
+	const user = req.user
+	sendSuccess(res, user, 'Utilisateur récupéré')
+})
 ```
 
 ## ✅ Validation des requêtes
@@ -237,18 +311,18 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
 Utiliser Zod pour valider les requêtes:
 
 ```typescript
-import { z } from 'zod';
-import { validateBody } from '../middlewares/validate';
+import { z } from 'zod'
+import { validateBody } from '../middlewares/validate'
 
 // Définir un schéma
 const createUserSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(2)
-});
+	email: z.string().email(),
+	password: z.string().min(8),
+	name: z.string().min(2),
+})
 
 // Utiliser dans une route
-router.post('/users', validateBody(createUserSchema), controller);
+router.post('/users', validateBody(createUserSchema), controller)
 ```
 
 ## 📊 Format de réponse standardisé
@@ -293,7 +367,7 @@ model Post {
   author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@map("posts")
 }
 ```
@@ -302,55 +376,55 @@ model Post {
 
 ```typescript
 // src/services/post.service.ts
-import { prisma } from '../config/database';
-import { NotFoundError } from '../utils/ApiError';
+import { prisma } from '../config/database'
+import { NotFoundError } from '../utils/ApiError'
 
 export const getPostById = async (id: string) => {
-  const post = await prisma.post.findUnique({ where: { id } });
-  
-  if (!post) {
-    throw new NotFoundError('Post non trouvé');
-  }
-  
-  return post;
-};
+	const post = await prisma.post.findUnique({ where: { id } })
+
+	if (!post) {
+		throw new NotFoundError('Post non trouvé')
+	}
+
+	return post
+}
 ```
 
 ### 3. Créer le controller
 
 ```typescript
 // src/controllers/post.controller.ts
-import { Request, Response } from 'express';
-import { asyncHandler } from '../utils/asyncHandler';
-import { sendSuccess } from '../utils/response';
-import * as postService from '../services/post.service';
+import { Request, Response } from 'express'
+import { asyncHandler } from '../utils/asyncHandler'
+import { sendSuccess } from '../utils/response'
+import * as postService from '../services/post.service'
 
 export const getPost = asyncHandler(async (req: Request, res: Response) => {
-  const post = await postService.getPostById(req.params.id);
-  sendSuccess(res, post, 'Post récupéré');
-});
+	const post = await postService.getPostById(req.params.id)
+	sendSuccess(res, post, 'Post récupéré')
+})
 ```
 
 ### 4. Créer les routes
 
 ```typescript
 // src/routes/post.routes.ts
-import { Router } from 'express';
-import { getPost } from '../controllers/post.controller';
-import { authenticate } from '../middlewares/auth';
+import { Router } from 'express'
+import { getPost } from '../controllers/post.controller'
+import { authenticate } from '../middlewares/auth'
 
-const router = Router();
+const router = Router()
 
-router.get('/:id', authenticate, getPost);
+router.get('/:id', authenticate, getPost)
 
-export default router;
+export default router
 ```
 
 ### 5. Enregistrer les routes dans app.ts
 
 ```typescript
-import postRouter from './routes/post.routes';
-app.use(`${config.server.apiPrefix}/posts`, postRouter);
+import postRouter from './routes/post.routes'
+app.use(`${config.server.apiPrefix}/posts`, postRouter)
 ```
 
 ## 🔐 Sécurité

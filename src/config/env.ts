@@ -1,10 +1,9 @@
 import dotenv from 'dotenv'
-import path from 'path'
 import { z } from 'zod'
 import { logger } from '../utils/logger'
 
 // Charger les variables d'environnement
-dotenv.config({ path: path.join(__dirname, '../../.env') })
+dotenv.config()
 
 /**
  * Schéma de validation des variables d'environnement

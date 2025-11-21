@@ -2,18 +2,15 @@
  * Cart Controller
  */
 
-import {
-	AddToCartInput,
-	UpdateCartItemInput
-} from '@/validators/cart.validator'
-import { Request, Response } from 'express'
+import type { AddToCartInput, UpdateCartItemInput } from '@/validators/cart.validator'
+import type { Request, Response } from 'express'
 import * as cartService from '../services/cart.service'
 import { asyncHandler } from '../utils/asyncHandler'
 import { sendSuccess } from '../utils/response'
 
 // Helper to extract user or session ID
 const getContext = (req: Request) => {
-	const userId = (req as any).user?.id
+	const userId = req.user?.id
 
 	const sessionId = req.headers['x-session-id'] as string
 

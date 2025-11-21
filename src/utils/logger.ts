@@ -17,10 +17,7 @@ class Logger {
 	}
 
 	error(message: string, meta?: any): void {
-		console.error(
-			'\x1b[31m%s\x1b[0m',
-			this.formatMessage('ERROR', message, meta)
-		)
+		console.error('\x1b[31m%s\x1b[0m', this.formatMessage('ERROR', message, meta))
 	}
 
 	warn(message: string, meta?: any): void {
@@ -29,18 +26,12 @@ class Logger {
 
 	debug(message: string, meta?: any): void {
 		if (process.env.NODE_ENV === 'development') {
-			console.log(
-				'\x1b[35m%s\x1b[0m',
-				this.formatMessage('DEBUG', message, meta)
-			)
+			console.log('\x1b[35m%s\x1b[0m', this.formatMessage('DEBUG', message, meta))
 		}
 	}
 
 	success(message: string, meta?: any): void {
-		console.log(
-			'\x1b[32m%s\x1b[0m',
-			this.formatMessage('SUCCESS', message, meta)
-		)
+		console.log('\x1b[32m%s\x1b[0m', this.formatMessage('SUCCESS', message, meta))
 	}
 }
 

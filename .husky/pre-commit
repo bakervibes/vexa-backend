@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Pre-commit hook
+# Run lint-staged (ESLint fix + Prettier format on staged files)
+
+pnpm lint-staged

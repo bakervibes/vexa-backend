@@ -1,15 +1,9 @@
-import {
-	addItem,
-	clearCart,
-	getCart,
-	removeItem,
-	updateItem
-} from '@/controllers/cart.controller'
+import { addItem, clearCart, getCart, removeItem, updateItem } from '@/controllers/cart.controller'
 import { validateBody, validateParams } from '@/middlewares/validate'
 import {
 	addToCartSchema,
 	cartItemIdSchema,
-	updateCartItemSchema
+	updateCartItemSchema,
 } from '@/validators/cart.validator'
 import { Router, type Router as ExpressRouter } from 'express'
 
@@ -29,25 +23,23 @@ const router: ExpressRouter = Router()
 // I'll assume for now that the controller handles the logic of checking user or session.
 // I will add a middleware to try to extract user but not block.
 
+import { env } from '@/config'
 import { prisma } from '@/config/database'
-import { NextFunction, Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
+import type { JwtPayload } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 
-const extractUser = async (
-	req: Request,
-	_res: Response,
-	next: NextFunction
-) => {
+const extractUser = async (req: Request, _res: Response, next: NextFunction) => {
 	const authHeader = req.headers.authorization
 	if (authHeader && authHeader.startsWith('Bearer ')) {
 		const token = authHeader.split(' ')[1]
 		try {
-			const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+			const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload
 			const user = await prisma.users.findUnique({ where: { id: decoded.id } })
 			if (user) {
-				;(req as any).user = user
+				req.user = user
 			}
-		} catch (error) {
+		} catch {
 			// Ignore invalid token for optional auth
 		}
 	}

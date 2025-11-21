@@ -2,12 +2,12 @@
  * Service de produits
  */
 
-import {
+import type {
 	CreateProductInput,
 	FilterInput,
-	UpdateProductInput
+	UpdateProductInput,
 } from '@/validators/products.validator'
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '../config/database'
 import { BadRequestError, NotFoundError } from '../utils/ApiError'
 
@@ -25,7 +25,7 @@ export const getAll = async (query?: Partial<FilterInput>) => {
 		page = 1,
 		limit = 20,
 		sortBy = 'createdAt',
-		sortOrder = 'desc'
+		sortOrder = 'desc',
 	} = query || {}
 
 	const whereConditions: Prisma.productsWhereInput[] = []
@@ -37,16 +37,16 @@ export const getAll = async (query?: Partial<FilterInput>) => {
 				{
 					name: {
 						contains: search,
-						mode: 'insensitive'
-					}
+						mode: 'insensitive',
+					},
 				},
 				{
 					description: {
 						contains: search,
-						mode: 'insensitive'
-					}
-				}
-			]
+						mode: 'insensitive',
+					},
+				},
+			],
 		})
 	}
 
@@ -55,9 +55,9 @@ export const getAll = async (query?: Partial<FilterInput>) => {
 		whereConditions.push({
 			category: {
 				slug: {
-					in: categories
-				}
-			}
+					in: categories,
+				},
+			},
 		})
 	}
 
@@ -69,12 +69,12 @@ export const getAll = async (query?: Partial<FilterInput>) => {
 					productVariantOptions: {
 						some: {
 							optionId: {
-								in: options
-							}
-						}
-					}
-				}
-			}
+								in: options,
+							},
+						},
+					},
+				},
+			},
 		})
 	}
 
@@ -85,14 +85,14 @@ export const getAll = async (query?: Partial<FilterInput>) => {
 		if (maxPrice !== undefined) priceFilter.lte = maxPrice
 
 		whereConditions.push({
-			price: priceFilter
+			price: priceFilter,
 		})
 	}
 
 	// Active status filter
 	if (isActive !== undefined) {
 		whereConditions.push({
-			isActive
+			isActive,
 		})
 	}
 
@@ -102,7 +102,7 @@ export const getAll = async (query?: Partial<FilterInput>) => {
 
 	// Sorting
 	const orderBy: Prisma.productsOrderByWithRelationInput = {
-		[sortBy]: sortOrder
+		[sortBy]: sortOrder,
 	}
 
 	const [products, total] = await Promise.all([
@@ -116,41 +116,40 @@ export const getAll = async (query?: Partial<FilterInput>) => {
 							include: {
 								option: {
 									include: {
-										attribute: true
-									}
-								}
-							}
-						}
-					}
+										attribute: true,
+									},
+								},
+							},
+						},
+					},
 				},
 				reviews: {
 					where: { isApproved: true },
 					select: {
-						rating: true
-					}
-				}
+						rating: true,
+					},
+				},
 			},
 			skip,
 			take,
-			orderBy
+			orderBy,
 		}),
 		prisma.products.count({
-			where: whereConditions.length > 0 ? { AND: whereConditions } : undefined
-		})
+			where: whereConditions.length > 0 ? { AND: whereConditions } : undefined,
+		}),
 	])
 
 	// Calculate average rating for each product
 	const productsWithRating = products.map((product) => {
 		const avgRating =
 			product.reviews.length > 0
-				? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-				  product.reviews.length
+				? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
 				: 0
 
 		return {
 			...product,
 			averageRating: Math.round(avgRating * 10) / 10,
-			reviewCount: product.reviews.length
+			reviewCount: product.reviews.length,
 		}
 	})
 
@@ -160,8 +159,8 @@ export const getAll = async (query?: Partial<FilterInput>) => {
 			page,
 			limit,
 			total,
-			totalPages: Math.ceil(total / limit)
-		}
+			totalPages: Math.ceil(total / limit),
+		},
 	}
 }
 
@@ -179,12 +178,12 @@ export const getOne = async (slug: string) => {
 						include: {
 							option: {
 								include: {
-									attribute: true
-								}
-							}
-						}
-					}
-				}
+									attribute: true,
+								},
+							},
+						},
+					},
+				},
 			},
 			reviews: {
 				where: { isApproved: true },
@@ -193,15 +192,15 @@ export const getOne = async (slug: string) => {
 						select: {
 							id: true,
 							name: true,
-							image: true
-						}
-					}
+							image: true,
+						},
+					},
 				},
 				orderBy: {
-					createdAt: 'desc'
-				}
-			}
-		}
+					createdAt: 'desc',
+				},
+			},
+		},
 	})
 
 	if (!product) {
@@ -211,14 +210,13 @@ export const getOne = async (slug: string) => {
 	// Calculate average rating
 	const avgRating =
 		product.reviews.length > 0
-			? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-			  product.reviews.length
+			? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
 			: 0
 
 	return {
 		...product,
 		averageRating: Math.round(avgRating * 10) / 10,
-		reviewCount: product.reviews.length
+		reviewCount: product.reviews.length,
 	}
 }
 
@@ -236,14 +234,14 @@ export const getById = async (id: string) => {
 						include: {
 							option: {
 								include: {
-									attribute: true
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+									attribute: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	})
 
 	if (!product) {
@@ -262,7 +260,7 @@ export const create = async (data: CreateProductInput) => {
 	// Vérifier que la catégorie existe
 	if (categoryId) {
 		const category = await prisma.categories.findUnique({
-			where: { id: categoryId }
+			where: { id: categoryId },
 		})
 
 		if (!category) {
@@ -272,7 +270,7 @@ export const create = async (data: CreateProductInput) => {
 
 	// Vérifier que le slug n'existe pas déjà
 	const existingProduct = await prisma.products.findUnique({
-		where: { slug: productData.slug }
+		where: { slug: productData.slug },
 	})
 
 	if (existingProduct) {
@@ -296,13 +294,13 @@ export const create = async (data: CreateProductInput) => {
 								? {
 										create: variant.options.map((option) => ({
 											optionId: option.optionId,
-											productId: '' // Will be set by Prisma
-										}))
-								  }
-								: undefined
-						}))
-				  }
-				: undefined
+											productId: '', // Will be set by Prisma
+										})),
+									}
+								: undefined,
+						})),
+					}
+				: undefined,
 		},
 		include: {
 			category: true,
@@ -312,14 +310,14 @@ export const create = async (data: CreateProductInput) => {
 						include: {
 							option: {
 								include: {
-									attribute: true
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+									attribute: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	})
 
 	return product
@@ -329,11 +327,11 @@ export const create = async (data: CreateProductInput) => {
  * Mettre à jour un produit
  */
 export const update = async (id: string, data: UpdateProductInput) => {
-	const { categoryId, variants, ...productData } = data
+	const { categoryId, variants: _variants, ...productData } = data
 
 	// Vérifier que le produit existe
 	const existingProduct = await prisma.products.findUnique({
-		where: { id }
+		where: { id },
 	})
 
 	if (!existingProduct) {
@@ -343,7 +341,7 @@ export const update = async (id: string, data: UpdateProductInput) => {
 	// Vérifier que la catégorie existe si fournie
 	if (categoryId) {
 		const category = await prisma.categories.findUnique({
-			where: { id: categoryId }
+			where: { id: categoryId },
 		})
 
 		if (!category) {
@@ -354,7 +352,7 @@ export const update = async (id: string, data: UpdateProductInput) => {
 	// Vérifier que le slug n'est pas déjà utilisé par un autre produit
 	if (productData.slug && productData.slug !== existingProduct.slug) {
 		const slugExists = await prisma.products.findUnique({
-			where: { slug: productData.slug }
+			where: { slug: productData.slug },
 		})
 
 		if (slugExists) {
@@ -367,7 +365,7 @@ export const update = async (id: string, data: UpdateProductInput) => {
 		where: { id },
 		data: {
 			...productData,
-			categoryId
+			categoryId,
 		},
 		include: {
 			category: true,
@@ -377,14 +375,14 @@ export const update = async (id: string, data: UpdateProductInput) => {
 						include: {
 							option: {
 								include: {
-									attribute: true
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+									attribute: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	})
 
 	return product
@@ -396,7 +394,7 @@ export const update = async (id: string, data: UpdateProductInput) => {
 export const remove = async (id: string) => {
 	// Vérifier que le produit existe
 	const existingProduct = await prisma.products.findUnique({
-		where: { id }
+		where: { id },
 	})
 
 	if (!existingProduct) {
@@ -405,7 +403,7 @@ export const remove = async (id: string) => {
 
 	// Supprimer le produit (cascade delete pour les variantes et options)
 	await prisma.products.delete({
-		where: { id }
+		where: { id },
 	})
 
 	return { message: 'Produit supprimé avec succès' }
@@ -414,12 +412,9 @@ export const remove = async (id: string) => {
 /**
  * Récupérer les produits par catégorie
  */
-export const getByCategory = async (
-	categorySlug: string,
-	query?: FilterInput
-) => {
+export const getByCategory = async (categorySlug: string, query?: FilterInput) => {
 	const category = await prisma.categories.findUnique({
-		where: { slug: categorySlug }
+		where: { slug: categorySlug },
 	})
 
 	if (!category) {
@@ -429,7 +424,7 @@ export const getByCategory = async (
 	// Utiliser la fonction getAll avec le filtre de catégorie
 	const mergedQuery = {
 		...(query || {}),
-		categories: [categorySlug]
+		categories: [categorySlug],
 	}
 	return getAll(mergedQuery)
 }
@@ -441,7 +436,7 @@ export const getByCategory = async (
 export const getFeatured = async (limit: number = 8) => {
 	const products = await prisma.products.findMany({
 		where: {
-			isActive: true
+			isActive: true,
 		},
 		include: {
 			category: true,
@@ -451,38 +446,37 @@ export const getFeatured = async (limit: number = 8) => {
 						include: {
 							option: {
 								include: {
-									attribute: true
-								}
-							}
-						}
-					}
-				}
+									attribute: true,
+								},
+							},
+						},
+					},
+				},
 			},
 			reviews: {
 				where: { isApproved: true },
 				select: {
-					rating: true
-				}
-			}
+					rating: true,
+				},
+			},
 		},
 		orderBy: {
-			createdAt: 'desc'
+			createdAt: 'desc',
 		},
-		take: limit
+		take: limit,
 	})
 
 	// Calculate average rating for each product
 	const productsWithRating = products.map((product) => {
 		const avgRating =
 			product.reviews.length > 0
-				? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-				  product.reviews.length
+				? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
 				: 0
 
 		return {
 			...product,
 			averageRating: Math.round(avgRating * 10) / 10,
-			reviewCount: product.reviews.length
+			reviewCount: product.reviews.length,
 		}
 	})
 
@@ -496,8 +490,8 @@ export const getRelated = async (productId: string, limit: number = 4) => {
 	const product = await prisma.products.findUnique({
 		where: { id: productId },
 		select: {
-			categoryId: true
-		}
+			categoryId: true,
+		},
 	})
 
 	if (!product) {
@@ -508,9 +502,9 @@ export const getRelated = async (productId: string, limit: number = 4) => {
 		where: {
 			categoryId: product.categoryId,
 			id: {
-				not: productId
+				not: productId,
 			},
-			isActive: true
+			isActive: true,
 		},
 		include: {
 			category: true,
@@ -520,38 +514,37 @@ export const getRelated = async (productId: string, limit: number = 4) => {
 						include: {
 							option: {
 								include: {
-									attribute: true
-								}
-							}
-						}
-					}
-				}
+									attribute: true,
+								},
+							},
+						},
+					},
+				},
 			},
 			reviews: {
 				where: { isApproved: true },
 				select: {
-					rating: true
-				}
-			}
+					rating: true,
+				},
+			},
 		},
 		take: limit,
 		orderBy: {
-			createdAt: 'desc'
-		}
+			createdAt: 'desc',
+		},
 	})
 
 	// Calculate average rating for each product
 	const productsWithRating = relatedProducts.map((product) => {
 		const avgRating =
 			product.reviews.length > 0
-				? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-				  product.reviews.length
+				? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
 				: 0
 
 		return {
 			...product,
 			averageRating: Math.round(avgRating * 10) / 10,
-			reviewCount: product.reviews.length
+			reviewCount: product.reviews.length,
 		}
 	})
 

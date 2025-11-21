@@ -2,10 +2,7 @@
  * Order Service
  */
 
-import {
-	CreateOrderInput,
-	UpdateOrderStatusInput
-} from '@/validators/order.validator'
+import type { CreateOrderInput, UpdateOrderStatusInput } from '@/validators/order.validator'
 import { prisma } from '../config/database'
 import { BadRequestError, NotFoundError } from '../utils/ApiError'
 import * as cartService from './cart.service'
@@ -14,13 +11,8 @@ import * as cartService from './cart.service'
  * Create order from cart
  */
 export const createOrder = async (userId: string, data: CreateOrderInput) => {
-	const {
-		shippingAddressId,
-		billingAddressId,
-		shippingAddress,
-		billingAddress,
-		paymentProvider
-	} = data
+	const { shippingAddressId, billingAddressId, shippingAddress, billingAddress, paymentProvider } =
+		data
 
 	// 1. Get user's cart
 	const cart = (await cartService.getCart(userId, undefined)) as any
@@ -35,7 +27,7 @@ export const createOrder = async (userId: string, data: CreateOrderInput) => {
 
 	if (shippingAddressId) {
 		const addr = await prisma.addresses.findUnique({
-			where: { id: shippingAddressId }
+			where: { id: shippingAddressId },
 		})
 		if (!addr) throw new NotFoundError('Shipping address not found')
 		finalShippingAddress = addr
@@ -43,7 +35,7 @@ export const createOrder = async (userId: string, data: CreateOrderInput) => {
 
 	if (billingAddressId) {
 		const addr = await prisma.addresses.findUnique({
-			where: { id: billingAddressId }
+			where: { id: billingAddressId },
 		})
 		if (!addr) throw new NotFoundError('Billing address not found')
 		finalBillingAddress = addr
@@ -66,9 +58,7 @@ export const createOrder = async (userId: string, data: CreateOrderInput) => {
 			? item.variant.price || item.variant.basePrice
 			: item.product.price || item.product.basePrice
 		if (price === null || price === undefined) {
-			throw new BadRequestError(
-				`Price not found for product ${item.product.name}`
-			)
+			throw new BadRequestError(`Price not found for product ${item.product.name}`)
 		}
 
 		totalAmount += price * item.quantity
@@ -81,8 +71,8 @@ export const createOrder = async (userId: string, data: CreateOrderInput) => {
 			data: {
 				name: item.product.name,
 				sku: item.variant?.sku,
-				image: item.product.images[0]
-			}
+				image: item.product.images[0],
+			},
 		})
 	}
 
@@ -96,20 +86,20 @@ export const createOrder = async (userId: string, data: CreateOrderInput) => {
 			billingAddress: finalBillingAddress as any, // JSON
 			status: 'PENDING',
 			items: {
-				create: orderItemsData
+				create: orderItemsData,
 			},
 			payments: {
 				create: {
 					provider: paymentProvider,
 					amount: totalAmount,
-					status: 'PENDING'
-				}
-			}
+					status: 'PENDING',
+				},
+			},
 		},
 		include: {
 			items: true,
-			payments: true
-		}
+			payments: true,
+		},
 	})
 
 	// 5. Clear cart
@@ -126,9 +116,9 @@ export const getUserOrders = async (userId: string) => {
 		where: { userId },
 		include: {
 			items: true,
-			payments: true
+			payments: true,
 		},
-		orderBy: { createdAt: 'desc' }
+		orderBy: { createdAt: 'desc' },
 	})
 }
 
@@ -145,10 +135,10 @@ export const getOrder = async (id: string, userId?: string) => {
 				select: {
 					id: true,
 					name: true,
-					email: true
-				}
-			}
-		}
+					email: true,
+				},
+			},
+		},
 	})
 
 	if (!order) {
@@ -165,16 +155,13 @@ export const getOrder = async (id: string, userId?: string) => {
 /**
  * Update order status (Admin)
  */
-export const updateStatus = async (
-	id: string,
-	data: UpdateOrderStatusInput
-) => {
+export const updateStatus = async (id: string, data: UpdateOrderStatusInput) => {
 	const order = await prisma.orders.findUnique({ where: { id } })
 	if (!order) throw new NotFoundError('Order not found')
 
 	return prisma.orders.update({
 		where: { id },
-		data: { status: data.status }
+		data: { status: data.status },
 	})
 }
 
@@ -195,6 +182,6 @@ export const cancelOrder = async (id: string, userId: string) => {
 
 	return prisma.orders.update({
 		where: { id },
-		data: { status: 'CANCELLED' }
+		data: { status: 'CANCELLED' },
 	})
 }

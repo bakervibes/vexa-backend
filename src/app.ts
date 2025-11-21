@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express, { Application } from 'express'
+import type { Application } from 'express'
+import express from 'express'
 import 'express-async-errors' // Doit être importé tôt pour catch les erreurs async
 import helmet from 'helmet'
 import { connectDatabase } from './config/database'
@@ -36,7 +37,7 @@ export const createApp = (): Application => {
 	app.use(
 		cors({
 			origin: config.cors.origin,
-			credentials: true
+			credentials: true,
 		})
 	)
 

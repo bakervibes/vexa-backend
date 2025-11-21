@@ -1,4 +1,4 @@
-import { Response } from 'express'
+import type { Response } from 'express'
 
 /**
  * Format de réponse API standardisé
@@ -27,7 +27,7 @@ export const sendSuccess = <T>(
 		success: true,
 		message,
 		data,
-		timestamp: new Date().toISOString()
+		timestamp: new Date().toISOString(),
 	}
 
 	return res.status(statusCode).json(response)
@@ -48,9 +48,9 @@ export const sendError = (
 		message,
 		error: {
 			code,
-			details
+			details,
 		},
-		timestamp: new Date().toISOString()
+		timestamp: new Date().toISOString(),
 	}
 
 	return res.status(statusCode).json(response)

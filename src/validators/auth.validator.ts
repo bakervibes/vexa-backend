@@ -18,7 +18,7 @@ export const registerSchema = z.object({
 		.regex(
 			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
 			'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'
-		)
+		),
 })
 
 /**
@@ -29,7 +29,7 @@ export const loginSchema = z.object({
 
 	password: z
 		.string({ message: 'Le mot de passe est requis' })
-		.min(1, 'Le mot de passe est requis')
+		.min(1, 'Le mot de passe est requis'),
 })
 
 /**
@@ -38,7 +38,7 @@ export const loginSchema = z.object({
 export const refreshTokenSchema = z.object({
 	refreshToken: z
 		.string({ message: 'Le refresh token est requis' })
-		.min(1, 'Le refresh token est requis')
+		.min(1, 'Le refresh token est requis'),
 })
 
 /**
@@ -52,7 +52,7 @@ export const updateProfileSchema = z.object({
 		.trim()
 		.optional(),
 
-	email: z.email('Email invalide').toLowerCase().trim().optional()
+	email: z.email('Email invalide').toLowerCase().trim().optional(),
 })
 
 /**
@@ -70,11 +70,11 @@ export const changePasswordSchema = z
 			.regex(
 				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
 				'Le nouveau mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'
-			)
+			),
 	})
 	.refine((data) => data.currentPassword !== data.newPassword, {
 		message: "Le nouveau mot de passe doit être différent de l'ancien",
-		path: ['newPassword']
+		path: ['newPassword'],
 	})
 
 export type RegisterInput = z.infer<typeof registerSchema>

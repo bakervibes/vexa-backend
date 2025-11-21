@@ -1,7 +1,6 @@
-import { startServer } from './app';
+import { startServer } from './app'
 
 /**
  * Point d'entrée de l'application
  */
-startServer();
-
+startServer()

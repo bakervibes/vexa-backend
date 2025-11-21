@@ -1,4 +1,4 @@
-import { User } from '@prisma/client'
+import type { User } from '@prisma/client'
 
 /**
  * Extension des types Express pour ajouter les propriétés personnalisées

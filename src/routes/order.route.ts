@@ -3,14 +3,14 @@ import {
 	createOrder,
 	getOrder,
 	getOrders,
-	updateStatus
+	updateStatus,
 } from '@/controllers/order.controller'
 import { authenticate, authorize } from '@/middlewares/auth'
 import { validateBody, validateParams } from '@/middlewares/validate'
 import {
 	createOrderSchema,
 	orderIdSchema,
-	updateOrderStatusSchema
+	updateOrderStatusSchema,
 } from '@/validators/order.validator'
 import { Router, type Router as ExpressRouter } from 'express'
 
@@ -42,12 +42,7 @@ router.get('/:id', authenticate, validateParams(orderIdSchema), getOrder)
  * @desc    Cancel order
  * @access  Private
  */
-router.put(
-	'/:id/cancel',
-	authenticate,
-	validateParams(orderIdSchema),
-	cancelOrder
-)
+router.put('/:id/cancel', authenticate, validateParams(orderIdSchema), cancelOrder)
 
 /**
  * @route   PUT /api/orders/:id/status

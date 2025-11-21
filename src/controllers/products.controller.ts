@@ -3,10 +3,10 @@
  * Renommer en auth.controller.ts pour l'utiliser
  */
 
-import {
+import type {
 	CreateProductInput,
 	FilterInput,
-	UpdateProductInput
+	UpdateProductInput,
 } from '@/validators/products.validator'
 import * as productsService from '../services/products.service'
 import { asyncHandler } from '../utils/asyncHandler'
@@ -15,15 +15,13 @@ import { sendSuccess } from '../utils/response'
 /**
  * Récupérer tous les produits
  */
-export const getAll = asyncHandler<{ query?: FilterInput }>(
-	async (req, res) => {
-		const { query } = req
+export const getAll = asyncHandler<{ query?: FilterInput }>(async (req, res) => {
+	const { query } = req
 
-		const result = await productsService.getAll(query)
+	const result = await productsService.getAll(query)
 
-		sendSuccess(res, result, 'Produits récupérés avec succès !')
-	}
-)
+	sendSuccess(res, result, 'Produits récupérés avec succès !')
+})
 
 /**
  * Récupérer un produit

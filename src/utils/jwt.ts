@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { config } from '../config/env'
-import { JwtPayload, TokenPair } from '../types/jwt'
+import type { JwtPayload, TokenPair } from '../types/jwt'
 import { UnauthorizedError } from './ApiError'
 
 /**
@@ -8,7 +8,7 @@ import { UnauthorizedError } from './ApiError'
  */
 export const generateAccessToken = (payload: JwtPayload): string => {
 	return jwt.sign(payload, config.jwt.secret, {
-		expiresIn: config.jwt.expiresIn as any
+		expiresIn: config.jwt.expiresIn as any,
 	})
 }
 
@@ -21,7 +21,7 @@ export const generateRefreshToken = (payload: JwtPayload): string => {
 	}
 
 	return jwt.sign(payload, config.jwt.refreshSecret, {
-		expiresIn: config.jwt.refreshExpiresIn as any
+		expiresIn: config.jwt.refreshExpiresIn as any,
 	})
 }
 
@@ -38,7 +38,7 @@ export const generateTokenPair = (payload: JwtPayload): TokenPair => {
 
 	return {
 		accessToken,
-		refreshToken
+		refreshToken,
 	}
 }
 

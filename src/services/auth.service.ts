@@ -3,19 +3,11 @@
  * Renommer en auth.service.ts pour l'utiliser
  */
 
-import {
-	LoginInput,
-	RefreshTokenInput,
-	RegisterInput
-} from '@/validators/auth.validator'
-import { users } from '@prisma/client'
+import type { LoginInput, RefreshTokenInput, RegisterInput } from '@/validators/auth.validator'
+import type { users } from '@prisma/client'
 import { prisma } from '../config/database'
-import { TokenPair } from '../types/jwt'
-import {
-	BadRequestError,
-	ConflictError,
-	UnauthorizedError
-} from '../utils/ApiError'
+import type { TokenPair } from '../types/jwt'
+import { BadRequestError, ConflictError, UnauthorizedError } from '../utils/ApiError'
 import { generateTokenPair, verifyRefreshToken } from '../utils/jwt'
 import { comparePassword, hashPassword } from '../utils/password'
 
@@ -32,7 +24,7 @@ export const register = async (input: RegisterInput): Promise<AuthResponse> => {
 
 	// Vérifier si l'email existe déjà
 	const existingUser = await prisma.users.findUnique({
-		where: { email }
+		where: { email },
 	})
 
 	if (existingUser) {
@@ -47,14 +39,14 @@ export const register = async (input: RegisterInput): Promise<AuthResponse> => {
 		data: {
 			email,
 			password: hashedPassword,
-			name
-		}
+			name,
+		},
 	})
 
 	// Générer les tokens
 	const tokens = generateTokenPair({
 		userId: user.id,
-		email: user.email
+		email: user.email,
 	})
 
 	return { user, tokens }
@@ -68,7 +60,7 @@ export const login = async (input: LoginInput): Promise<AuthResponse> => {
 
 	// Trouver l'utilisateur
 	const user = await prisma.users.findUnique({
-		where: { email }
+		where: { email },
 	})
 
 	if (!user) {
@@ -76,9 +68,7 @@ export const login = async (input: LoginInput): Promise<AuthResponse> => {
 	}
 
 	if (!user.password) {
-		throw new BadRequestError(
-			"Cette méthode de connexion n'est pas supportée pour cet email"
-		)
+		throw new BadRequestError("Cette méthode de connexion n'est pas supportée pour cet email")
 	}
 
 	// Vérifier le mot de passe
@@ -91,7 +81,7 @@ export const login = async (input: LoginInput): Promise<AuthResponse> => {
 	// Générer les tokens
 	const tokens = generateTokenPair({
 		userId: user.id,
-		email: user.email
+		email: user.email,
 	})
 
 	return { user, tokens }
@@ -100,9 +90,7 @@ export const login = async (input: LoginInput): Promise<AuthResponse> => {
 /**
  * Rafraîchir le token d'accès
  */
-export const refreshAccessToken = async (
-	input: RefreshTokenInput
-): Promise<TokenPair> => {
+export const refreshAccessToken = async (input: RefreshTokenInput): Promise<TokenPair> => {
 	const { refreshToken } = input
 
 	if (!refreshToken) {
@@ -114,7 +102,7 @@ export const refreshAccessToken = async (
 
 	// Vérifier que l'utilisateur existe toujours
 	const user = await prisma.users.findUnique({
-		where: { id: payload.userId }
+		where: { id: payload.userId },
 	})
 
 	if (!user) {
@@ -124,7 +112,7 @@ export const refreshAccessToken = async (
 	// Générer de nouveaux tokens
 	const tokens = generateTokenPair({
 		userId: user.id,
-		email: user.email
+		email: user.email,
 	})
 
 	return tokens

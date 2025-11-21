@@ -3,12 +3,8 @@
  * Renommer en auth.controller.ts pour l'utiliser
  */
 
-import {
-	LoginInput,
-	RefreshTokenInput,
-	RegisterInput
-} from '@/validators/auth.validator'
-import { users } from '@prisma/client'
+import type { LoginInput, RefreshTokenInput, RegisterInput } from '@/validators/auth.validator'
+import type { users } from '@prisma/client'
 import * as authService from '../services/auth.service'
 import { UnauthorizedError } from '../utils/ApiError'
 import { asyncHandler } from '../utils/asyncHandler'
@@ -75,7 +71,7 @@ export const getMe = asyncHandler<{
 	}
 
 	// Ne pas renvoyer le mot de passe
-	const { password, ...userWithoutPassword } = req.user as any
+	const { password: _password, ...userWithoutPassword } = req.user
 
 	sendSuccess(res, userWithoutPassword, 'Utilisateur récupéré')
 })

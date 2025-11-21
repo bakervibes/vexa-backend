@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
-import { NextFunction, Request, Response } from 'express'
-import { z, ZodError } from 'zod'
+import type { NextFunction, Request, Response } from 'express'
+import type { z } from 'zod'
+import { ZodError } from 'zod'
 import { ApiError } from '../utils/ApiError'
 import { logger } from '../utils/logger'
 import { sendError } from '../utils/response'
@@ -8,7 +9,7 @@ import { sendError } from '../utils/response'
 /**
  * Convertit les erreurs en ApiError
  */
-const convertToApiError = (err: any): ApiError => {
+const convertToApiError = (err: Error): ApiError => {
 	// Déjà une ApiError
 	if (err instanceof ApiError) {
 		return err
@@ -18,7 +19,7 @@ const convertToApiError = (err: any): ApiError => {
 	if (err instanceof ZodError) {
 		const errors = err.issues.map((e: z.ZodIssue) => ({
 			field: e.path.join('.'),
-			message: e.message
+			message: e.message,
 		}))
 		return new ApiError(422, 'Erreur de validation', true, errors)
 	}
@@ -28,7 +29,7 @@ const convertToApiError = (err: any): ApiError => {
 		switch (err.code) {
 			case 'P2002':
 				return new ApiError(409, 'Cette ressource existe déjà', true, {
-					field: err.meta?.target
+					field: err.meta?.target,
 				})
 			case 'P2025':
 				return new ApiError(404, 'Ressource non trouvée', true)
@@ -36,7 +37,7 @@ const convertToApiError = (err: any): ApiError => {
 				return new ApiError(400, 'Contrainte de clé étrangère violée', true)
 			default:
 				return new ApiError(400, 'Erreur de base de données', true, {
-					code: err.code
+					code: err.code,
 				})
 		}
 	}
@@ -46,11 +47,7 @@ const convertToApiError = (err: any): ApiError => {
 	}
 
 	// Erreur par défaut
-	return new ApiError(
-		err.statusCode || 500,
-		err.message || 'Erreur interne du serveur',
-		false
-	)
+	return new ApiError(500, err.message || 'Erreur interne du serveur', false)
 }
 
 /**
@@ -71,13 +68,13 @@ export const errorHandler = (
 			message: apiError.message,
 			stack: apiError.stack,
 			path: req.path,
-			method: req.method
+			method: req.method,
 		})
 	} else if (process.env.NODE_ENV === 'development') {
 		logger.warn('Erreur opérationnelle:', {
 			message: apiError.message,
 			statusCode: apiError.statusCode,
-			path: req.path
+			path: req.path,
 		})
 	}
 
@@ -90,8 +87,8 @@ export const errorHandler = (
 		process.env.NODE_ENV === 'development'
 			? {
 					...apiError.details,
-					stack: apiError.stack
-			  }
+					stack: apiError.stack,
+				}
 			: apiError.details
 	)
 }
@@ -99,15 +96,7 @@ export const errorHandler = (
 /**
  * Middleware pour gérer les routes non trouvées
  */
-export const notFoundHandler = (
-	req: Request,
-	_res: Response,
-	next: NextFunction
-): void => {
-	const error = new ApiError(
-		404,
-		`Route ${req.method} ${req.path} non trouvée`,
-		true
-	)
+export const notFoundHandler = (req: Request, _res: Response, next: NextFunction): void => {
+	const error = new ApiError(404, `Route ${req.method} ${req.path} non trouvée`, true)
 	next(error)
 }

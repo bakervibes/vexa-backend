@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# Pre-push hook
+# Run type-check and lint-check before pushing
+
+pnpm lint:check
+pnpm type-check

@@ -12,17 +12,15 @@ export const filterSchema = z.object({
 	isActive: z.boolean().optional(),
 	page: z.number().int().min(1).default(1),
 	limit: z.number().int().min(1).max(100).default(20),
-	sortBy: z
-		.enum(['name', 'price', 'createdAt', 'updatedAt'])
-		.default('createdAt'),
-	sortOrder: z.enum(['asc', 'desc']).default('desc')
+	sortBy: z.enum(['name', 'price', 'createdAt', 'updatedAt']).default('createdAt'),
+	sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
 
 /**
  * Schéma pour les options de variante
  */
 const variantOptionSchema = z.object({
-	optionId: z.cuid("ID d'option invalide")
+	optionId: z.cuid("ID d'option invalide"),
 })
 
 /**
@@ -43,7 +41,7 @@ const productVariantSchema = z.object({
 		.min(0, 'Le stock doit être positif')
 		.default(0),
 	isActive: z.boolean().optional().default(true),
-	options: z.array(variantOptionSchema).optional()
+	options: z.array(variantOptionSchema).optional(),
 })
 
 /**
@@ -68,20 +66,14 @@ export const createProductSchema = z.object({
 	description: z.string().optional(),
 	basePrice: z.number().min(0, 'Le prix de base doit être positif').optional(),
 	price: z.number().min(0, 'Le prix doit être positif').optional(),
-	images: z
-		.array(z.string().url("URL d'image invalide"))
-		.optional()
-		.default([]),
+	images: z.array(z.string().url("URL d'image invalide")).optional().default([]),
 	isActive: z.boolean().optional().default(true),
-	metaTitle: z
-		.string()
-		.max(60, 'Le meta titre ne peut pas dépasser 60 caractères')
-		.optional(),
+	metaTitle: z.string().max(60, 'Le meta titre ne peut pas dépasser 60 caractères').optional(),
 	metaDescription: z
 		.string()
 		.max(160, 'La meta description ne peut pas dépasser 160 caractères')
 		.optional(),
-	variants: z.array(productVariantSchema).optional()
+	variants: z.array(productVariantSchema).optional(),
 })
 
 /**
@@ -110,30 +102,27 @@ export const updateProductSchema = z.object({
 	price: z.number().min(0, 'Le prix doit être positif').optional(),
 	images: z.array(z.string().url("URL d'image invalide")).optional(),
 	isActive: z.boolean().optional(),
-	metaTitle: z
-		.string()
-		.max(60, 'Le meta titre ne peut pas dépasser 60 caractères')
-		.optional(),
+	metaTitle: z.string().max(60, 'Le meta titre ne peut pas dépasser 60 caractères').optional(),
 	metaDescription: z
 		.string()
 		.max(160, 'La meta description ne peut pas dépasser 160 caractères')
 		.optional(),
-	variants: z.array(productVariantSchema).optional()
+	variants: z.array(productVariantSchema).optional(),
 })
 
 /**
  * Schéma de validation pour les paramètres de route
  */
 export const productIdSchema = z.object({
-	id: z.cuid('ID de produit invalide')
+	id: z.cuid('ID de produit invalide'),
 })
 
 export const productSlugSchema = z.object({
-	slug: z.string().min(1, 'Le slug est requis')
+	slug: z.string().min(1, 'Le slug est requis'),
 })
 
 export const categorySlugSchema = z.object({
-	categorySlug: z.string().min(1, 'Le slug de catégorie est requis')
+	categorySlug: z.string().min(1, 'Le slug de catégorie est requis'),
 })
 
 // Types

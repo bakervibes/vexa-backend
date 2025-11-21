@@ -8,7 +8,10 @@ import { config } from './env'
  * Pool de connexions PostgreSQL
  */
 const pool = new Pool({
-	connectionString: config.database.url
+	connectionString: config.database.url,
+	ssl: {
+		rejectUnauthorized: false, // Accepte les certificats auto-signés (nécessaire pour Aiven et autres providers)
+	},
 })
 
 /**
@@ -26,11 +29,8 @@ export const prisma =
 	globalForPrisma.prisma ||
 	new PrismaClient({
 		adapter,
-		log:
-			process.env.NODE_ENV === 'development'
-				? ['query', 'error', 'warn']
-				: ['error'],
-		errorFormat: 'pretty'
+		log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+		errorFormat: 'pretty',
 	})
 
 if (process.env.NODE_ENV !== 'production') {

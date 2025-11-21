@@ -11,25 +11,17 @@ dotenv.config({ path: path.join(__dirname, '../../.env') })
  */
 const envSchema = z.object({
 	// Environnement
-	NODE_ENV: z
-		.enum(['development', 'production', 'test'])
-		.default('development'),
+	NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
 	// Serveur
-	PORT: z
-		.string()
-		.default('3000')
-		.transform(Number)
-		.pipe(z.number().min(1).max(65535)),
+	PORT: z.string().default('3000').transform(Number).pipe(z.number().min(1).max(65535)),
 	HOST: z.string().default('localhost'),
 
 	// Base de données
 	DATABASE_URL: z.url('DATABASE_URL doit être une URL valide'),
 
 	// JWT
-	JWT_SECRET: z
-		.string()
-		.min(32, 'JWT_SECRET doit contenir au moins 32 caractères'),
+	JWT_SECRET: z.string().min(32, 'JWT_SECRET doit contenir au moins 32 caractères'),
 	JWT_EXPIRES_IN: z.string().default('7d'),
 	JWT_REFRESH_SECRET: z
 		.string()
@@ -41,20 +33,12 @@ const envSchema = z.object({
 	CORS_ORIGIN: z.string().default('*'),
 
 	// Rate Limiting
-	RATE_LIMIT_WINDOW_MS: z
-		.string()
-		.default('900000')
-		.transform(Number)
-		.pipe(z.number().positive()), // 15 minutes
-	RATE_LIMIT_MAX_REQUESTS: z
-		.string()
-		.default('100')
-		.transform(Number)
-		.pipe(z.number().positive()),
+	RATE_LIMIT_WINDOW_MS: z.string().default('900000').transform(Number).pipe(z.number().positive()), // 15 minutes
+	RATE_LIMIT_MAX_REQUESTS: z.string().default('100').transform(Number).pipe(z.number().positive()),
 
 	// Autres
 	API_PREFIX: z.string().default('/api'),
-	LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info')
+	LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 })
 
 /**
@@ -70,8 +54,8 @@ const validateEnv = () => {
 			logger.error("Erreur de validation des variables d'environnement:", {
 				errors: error.issues.map((err: z.ZodIssue) => ({
 					path: err.path.join('.'),
-					message: err.message
-				}))
+					message: err.message,
+				})),
 			})
 		}
 		process.exit(1)
@@ -92,30 +76,30 @@ export const config = {
 	server: {
 		port: env.PORT,
 		host: env.HOST,
-		apiPrefix: env.API_PREFIX
+		apiPrefix: env.API_PREFIX,
 	},
 
 	database: {
-		url: env.DATABASE_URL
+		url: env.DATABASE_URL,
 	},
 
 	jwt: {
 		secret: env.JWT_SECRET,
 		expiresIn: env.JWT_EXPIRES_IN,
 		refreshSecret: env.JWT_REFRESH_SECRET,
-		refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN
+		refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
 	},
 
 	cors: {
-		origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',')
+		origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(','),
 	},
 
 	rateLimit: {
 		windowMs: env.RATE_LIMIT_WINDOW_MS,
-		maxRequests: env.RATE_LIMIT_MAX_REQUESTS
+		maxRequests: env.RATE_LIMIT_MAX_REQUESTS,
 	},
 
 	log: {
-		level: env.LOG_LEVEL
-	}
+		level: env.LOG_LEVEL,
+	},
 } as const

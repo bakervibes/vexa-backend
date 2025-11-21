@@ -1,19 +1,20 @@
-import { NextFunction, Request, Response } from 'express'
-import { z, ZodError } from 'zod'
+import type { NextFunction, Request, Response } from 'express'
+import type { z } from 'zod'
+import { ZodError } from 'zod'
 import { ValidationError } from '../utils/ApiError'
 
 /**
  * Middleware de validation des requêtes avec Zod
  * Valide body, params, query et headers
  */
-export const validate = (schema: z.ZodObject<any>) => {
+export const validate = (schema: z.ZodObject) => {
 	return async (req: Request, _res: Response, next: NextFunction) => {
 		try {
 			await schema.parseAsync({
 				body: req.body,
 				params: req.params,
 				query: req.query,
-				headers: req.headers
+				headers: req.headers,
 			})
 			next()
 		} catch (error) {
@@ -21,7 +22,7 @@ export const validate = (schema: z.ZodObject<any>) => {
 				const errors = error.issues.map((err: z.ZodIssue) => ({
 					field: err.path.join('.'),
 					message: err.message,
-					code: err.code
+					code: err.code,
 				}))
 
 				next(new ValidationError('Validation échouée', errors))
@@ -35,7 +36,7 @@ export const validate = (schema: z.ZodObject<any>) => {
 /**
  * Middleware de validation du body uniquement
  */
-export const validateBody = (schema: z.ZodObject<any>) => {
+export const validateBody = (schema: z.ZodObject) => {
 	return async (req: Request, _res: Response, next: NextFunction) => {
 		try {
 			req.body = await schema.parseAsync(req.body)
@@ -45,7 +46,7 @@ export const validateBody = (schema: z.ZodObject<any>) => {
 				const errors = error.issues.map((err: z.ZodIssue) => ({
 					field: err.path.join('.'),
 					message: err.message,
-					code: err.code
+					code: err.code,
 				}))
 
 				next(new ValidationError('Validation du body échouée', errors))
@@ -59,7 +60,7 @@ export const validateBody = (schema: z.ZodObject<any>) => {
 /**
  * Middleware de validation des params uniquement
  */
-export const validateParams = (schema: z.ZodObject<any>) => {
+export const validateParams = (schema: z.ZodObject) => {
 	return async (req: Request, _res: Response, next: NextFunction) => {
 		try {
 			req.params = (await schema.parseAsync(req.params)) as any
@@ -69,7 +70,7 @@ export const validateParams = (schema: z.ZodObject<any>) => {
 				const errors = error.issues.map((err: z.ZodIssue) => ({
 					field: err.path.join('.'),
 					message: err.message,
-					code: err.code
+					code: err.code,
 				}))
 
 				next(new ValidationError('Validation des paramètres échouée', errors))
@@ -83,7 +84,7 @@ export const validateParams = (schema: z.ZodObject<any>) => {
 /**
  * Middleware de validation des query params uniquement
  */
-export const validateQuery = (schema: z.ZodObject<any>) => {
+export const validateQuery = (schema: z.ZodObject) => {
 	return async (req: Request, _res: Response, next: NextFunction) => {
 		try {
 			req.query = (await schema.parseAsync(req.query)) as any
@@ -93,7 +94,7 @@ export const validateQuery = (schema: z.ZodObject<any>) => {
 				const errors = error.issues.map((err: z.ZodIssue) => ({
 					field: err.path.join('.'),
 					message: err.message,
-					code: err.code
+					code: err.code,
 				}))
 
 				next(new ValidationError('Validation de la query échouée', errors))

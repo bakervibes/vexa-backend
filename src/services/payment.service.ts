@@ -2,7 +2,7 @@
  * Payment Service
  */
 
-import { CreatePaymentIntentInput } from '@/validators/payment.validator'
+import type { CreatePaymentIntentInput } from '@/validators/payment.validator'
 import { prisma } from '../config/database'
 import { BadRequestError, NotFoundError } from '../utils/ApiError'
 
@@ -12,17 +12,14 @@ import { BadRequestError, NotFoundError } from '../utils/ApiError'
 /**
  * Create payment intent
  */
-export const createPaymentIntent = async (
-	userId: string,
-	data: CreatePaymentIntentInput
-) => {
+export const createPaymentIntent = async (userId: string, data: CreatePaymentIntentInput) => {
 	const { orderId } = data
 
 	const order = await prisma.orders.findUnique({
 		where: { id: orderId },
 		include: {
-			payments: true
-		}
+			payments: true,
+		},
 	})
 
 	if (!order) {
@@ -44,9 +41,7 @@ export const createPaymentIntent = async (
 	}
 
 	// Mock payment intent creation
-	const clientSecret = `pi_${Date.now()}_secret_${Math.random()
-		.toString(36)
-		.substring(7)}`
+	const clientSecret = `pi_${Date.now()}_secret_${Math.random().toString(36).substring(7)}`
 
 	// Update or create payment record
 	// We might already have a pending payment from order creation
@@ -56,8 +51,8 @@ export const createPaymentIntent = async (
 		await prisma.payments.update({
 			where: { id: pendingPayment.id },
 			data: {
-				transactionId: `pi_${Date.now()}` // Mock transaction ID
-			}
+				transactionId: `pi_${Date.now()}`, // Mock transaction ID
+			},
 		})
 	} else {
 		await prisma.payments.create({
@@ -66,15 +61,15 @@ export const createPaymentIntent = async (
 				provider: 'STRIPE', // Defaulting to Stripe for now
 				amount: order.totalAmount,
 				status: 'PENDING',
-				transactionId: `pi_${Date.now()}`
-			}
+				transactionId: `pi_${Date.now()}`,
+			},
 		})
 	}
 
 	return {
 		clientSecret,
 		amount: order.totalAmount,
-		currency: order.currency
+		currency: order.currency,
 	}
 }
 
@@ -94,8 +89,8 @@ export const getPaymentStatus = async (orderId: string, userId: string) => {
 	const order = await prisma.orders.findUnique({
 		where: { id: orderId },
 		include: {
-			payments: true
-		}
+			payments: true,
+		},
 	})
 
 	if (!order) {

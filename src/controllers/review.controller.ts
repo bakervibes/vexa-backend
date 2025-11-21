@@ -2,11 +2,8 @@
  * Review Controller
  */
 
-import {
-	AddReviewInput,
-	UpdateReviewInput
-} from '@/validators/review.validator'
-import { Request, Response } from 'express'
+import type { AddReviewInput, UpdateReviewInput } from '@/validators/review.validator'
+import type { Request, Response } from 'express'
 import * as reviewService from '../services/review.service'
 import { asyncHandler } from '../utils/asyncHandler'
 import { sendSuccess } from '../utils/response'
@@ -24,7 +21,7 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
  * Add a review
  */
 export const addReview = asyncHandler(async (req: Request, res: Response) => {
-	const userId = (req as any).user.id
+	const userId = req.user?.id
 	const body = req.body as AddReviewInput
 	const result = await reviewService.addReview(userId, body)
 	sendSuccess(res, result, 'Review added successfully', 201)
@@ -33,35 +30,29 @@ export const addReview = asyncHandler(async (req: Request, res: Response) => {
 /**
  * Update a review
  */
-export const updateReview = asyncHandler(
-	async (req: Request, res: Response) => {
-		const userId = (req as any).user.id
-		const { id } = req.params
-		const body = req.body as UpdateReviewInput
-		const result = await reviewService.updateReview(userId, id, body)
-		sendSuccess(res, result, 'Review updated successfully')
-	}
-)
+export const updateReview = asyncHandler(async (req: Request, res: Response) => {
+	const userId = req.user?.id
+	const { id } = req.params
+	const body = req.body as UpdateReviewInput
+	const result = await reviewService.updateReview(userId, id, body)
+	sendSuccess(res, result, 'Review updated successfully')
+})
 
 /**
  * Delete a review
  */
-export const deleteReview = asyncHandler(
-	async (req: Request, res: Response) => {
-		const userId = (req as any).user.id
-		const { id } = req.params
-		const result = await reviewService.deleteReview(userId, id)
-		sendSuccess(res, result, 'Review deleted successfully')
-	}
-)
+export const deleteReview = asyncHandler(async (req: Request, res: Response) => {
+	const userId = req.user?.id
+	const { id } = req.params
+	const result = await reviewService.deleteReview(userId, id)
+	sendSuccess(res, result, 'Review deleted successfully')
+})
 
 /**
  * Approve review (Admin)
  */
-export const approveReview = asyncHandler(
-	async (req: Request, res: Response) => {
-		const { id } = req.params
-		const result = await reviewService.approveReview(id)
-		sendSuccess(res, result, 'Review approved successfully')
-	}
-)
+export const approveReview = asyncHandler(async (req: Request, res: Response) => {
+	const { id } = req.params
+	const result = await reviewService.approveReview(id)
+	sendSuccess(res, result, 'Review approved successfully')
+})

@@ -4,21 +4,11 @@
  */
 
 import { Router, type Router as ExpressRouter } from 'express'
-import {
-	getMe,
-	login,
-	logout,
-	refreshToken,
-	register
-} from '../controllers/auth.controller'
+import { getMe, login, logout, refreshToken, register } from '../controllers/auth.controller'
 import { authenticate } from '../middlewares/auth'
 import { strictLimiter } from '../middlewares/rateLimiter'
 import { validateBody } from '../middlewares/validate'
-import {
-	loginSchema,
-	refreshTokenSchema,
-	registerSchema
-} from '../validators/auth.validator'
+import { loginSchema, refreshTokenSchema, registerSchema } from '../validators/auth.validator'
 
 const router: ExpressRouter = Router()
 

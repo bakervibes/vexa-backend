@@ -6,20 +6,16 @@ import {
 	getFeatured,
 	getOne,
 	getRelated,
-	updateProduct
+	updateProduct,
 } from '@/controllers/products.controller'
 import { authenticate, authorize } from '@/middlewares/auth'
-import {
-	validateBody,
-	validateParams,
-	validateQuery
-} from '@/middlewares/validate'
+import { validateBody, validateParams, validateQuery } from '@/middlewares/validate'
 import {
 	categorySlugSchema,
 	createProductSchema,
 	filterSchema,
 	productIdSchema,
-	updateProductSchema
+	updateProductSchema,
 } from '@/validators/products.validator'
 import { Router, type Router as ExpressRouter } from 'express'
 import { strictLimiter } from '../middlewares/rateLimiter'
@@ -51,12 +47,7 @@ router.get(
  * @desc    Récupérer les produits similaires
  * @access  Public
  */
-router.get(
-	'/:id/related',
-	strictLimiter,
-	validateParams(productIdSchema),
-	getRelated
-)
+router.get('/:id/related', strictLimiter, validateParams(productIdSchema), getRelated)
 
 /**
  * @route   GET /api/products
@@ -77,13 +68,7 @@ router.get('/:slug', strictLimiter, getOne)
  * @desc    Créer un nouveau produit
  * @access  Private (Admin)
  */
-router.post(
-	'/',
-	authenticate,
-	authorize('ADMIN'),
-	validateBody(createProductSchema),
-	createProduct
-)
+router.post('/', authenticate, authorize('ADMIN'), validateBody(createProductSchema), createProduct)
 
 /**
  * @route   PUT /api/products/:id

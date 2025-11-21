@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import { prisma } from '../config/database'
 import { ForbiddenError, UnauthorizedError } from '../utils/ApiError'
 import { verifyAccessToken } from '../utils/jwt'
@@ -23,9 +23,7 @@ export const authenticate = async (
 		const parts = authHeader.split(' ')
 
 		if (parts.length !== 2 || parts[0] !== 'Bearer') {
-			throw new UnauthorizedError(
-				'Format du token invalide. Utiliser: Bearer <token>'
-			)
+			throw new UnauthorizedError('Format du token invalide. Utiliser: Bearer <token>')
 		}
 
 		const token = parts[1]
@@ -35,7 +33,7 @@ export const authenticate = async (
 
 		// Récupérer l'utilisateur depuis la base de données
 		const user = await prisma.users.findUnique({
-			where: { id: payload.userId }
+			where: { id: payload.userId },
 		})
 
 		if (!user) {
@@ -83,7 +81,7 @@ export const authenticateOptional = async (
 		const payload = verifyAccessToken(token)
 
 		const user = await prisma.users.findUnique({
-			where: { id: payload.userId }
+			where: { id: payload.userId },
 		})
 
 		if (user) {
@@ -143,8 +141,6 @@ export const authorizeOwnerOrAdmin = (userIdParam: string = 'id') => {
 			return next()
 		}
 
-		throw new ForbiddenError(
-			"Vous ne pouvez accéder qu'à vos propres ressources"
-		)
+		throw new ForbiddenError("Vous ne pouvez accéder qu'à vos propres ressources")
 	}
 }

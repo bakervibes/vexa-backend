@@ -2,10 +2,7 @@
  * Review Service
  */
 
-import {
-	AddReviewInput,
-	UpdateReviewInput
-} from '@/validators/review.validator'
+import type { AddReviewInput, UpdateReviewInput } from '@/validators/review.validator'
 import { prisma } from '../config/database'
 import { BadRequestError, NotFoundError } from '../utils/ApiError'
 
@@ -16,20 +13,20 @@ export const getReviews = async (productId: string) => {
 	const reviews = await prisma.product_reviews.findMany({
 		where: {
 			productId,
-			isApproved: true
+			isApproved: true,
 		},
 		include: {
 			user: {
 				select: {
 					id: true,
 					name: true,
-					image: true
-				}
-			}
+					image: true,
+				},
+			},
 		},
 		orderBy: {
-			createdAt: 'desc'
-		}
+			createdAt: 'desc',
+		},
 	})
 
 	return reviews
@@ -43,7 +40,7 @@ export const addReview = async (userId: string, data: AddReviewInput) => {
 
 	// Check if product exists
 	const product = await prisma.products.findUnique({
-		where: { id: productId }
+		where: { id: productId },
 	})
 
 	if (!product) {
@@ -54,8 +51,8 @@ export const addReview = async (userId: string, data: AddReviewInput) => {
 	const existingReview = await prisma.product_reviews.findFirst({
 		where: {
 			productId,
-			userId
-		}
+			userId,
+		},
 	})
 
 	if (existingReview) {
@@ -73,8 +70,8 @@ export const addReview = async (userId: string, data: AddReviewInput) => {
 			userId,
 			rating,
 			comment,
-			isApproved: false // Requires admin approval? Schema default is false.
-		}
+			isApproved: false, // Requires admin approval? Schema default is false.
+		},
 	})
 
 	return review
@@ -83,13 +80,9 @@ export const addReview = async (userId: string, data: AddReviewInput) => {
 /**
  * Update a review
  */
-export const updateReview = async (
-	userId: string,
-	reviewId: string,
-	data: UpdateReviewInput
-) => {
+export const updateReview = async (userId: string, reviewId: string, data: UpdateReviewInput) => {
 	const review = await prisma.product_reviews.findUnique({
-		where: { id: reviewId }
+		where: { id: reviewId },
 	})
 
 	if (!review) {
@@ -104,8 +97,8 @@ export const updateReview = async (
 		where: { id: reviewId },
 		data: {
 			...data,
-			isApproved: false // Re-approval needed after update?
-		}
+			isApproved: false, // Re-approval needed after update?
+		},
 	})
 
 	return updatedReview
@@ -116,7 +109,7 @@ export const updateReview = async (
  */
 export const deleteReview = async (userId: string, reviewId: string) => {
 	const review = await prisma.product_reviews.findUnique({
-		where: { id: reviewId }
+		where: { id: reviewId },
 	})
 
 	if (!review) {
@@ -133,7 +126,7 @@ export const deleteReview = async (userId: string, reviewId: string) => {
 	}
 
 	await prisma.product_reviews.delete({
-		where: { id: reviewId }
+		where: { id: reviewId },
 	})
 
 	return { message: 'Review deleted successfully' }
@@ -144,7 +137,7 @@ export const deleteReview = async (userId: string, reviewId: string) => {
  */
 export const approveReview = async (reviewId: string) => {
 	const review = await prisma.product_reviews.findUnique({
-		where: { id: reviewId }
+		where: { id: reviewId },
 	})
 
 	if (!review) {
@@ -153,6 +146,6 @@ export const approveReview = async (reviewId: string) => {
 
 	return prisma.product_reviews.update({
 		where: { id: reviewId },
-		data: { isApproved: true }
+		data: { isApproved: true },
 	})
 }

@@ -4,8 +4,13 @@
  */
 
 import type {
+	CategorySlugInput,
 	CreateProductInput,
 	FilterInput,
+	LimitInput,
+	ProductIdInput,
+	ProductSlugInput,
+	RelatedInput,
 	UpdateProductInput,
 } from '@/validators/products.validator'
 import * as productsService from '../services/products.service'
@@ -15,8 +20,8 @@ import { sendSuccess } from '../utils/response'
 /**
  * Récupérer tous les produits
  */
-export const getAll = asyncHandler<{ query?: FilterInput }>(async (req, res) => {
-	const { query } = req
+export const getAll = asyncHandler<{ query: FilterInput }>(async (req, res) => {
+	const query = req.query
 
 	const result = await productsService.getAll(query)
 
@@ -27,7 +32,7 @@ export const getAll = asyncHandler<{ query?: FilterInput }>(async (req, res) => 
  * Récupérer un produit
  */
 export const getOne = asyncHandler<{
-	params: { slug: string }
+	params: ProductSlugInput
 }>(async (req, res) => {
 	const { slug } = req.params
 
@@ -42,36 +47,38 @@ export const getOne = asyncHandler<{
 export const createProduct = asyncHandler<{
 	body: CreateProductInput
 }>(async (req, res) => {
-	const { body } = req
+	const data = req.body
 
-	const result = await productsService.create(body)
+	const result = await productsService.create(data)
 
 	sendSuccess(res, result, 'Produit créé avec succès !')
 })
 
 /**
- * Créer un produit
+ * Mettre à jour un produit
  */
 export const updateProduct = asyncHandler<{
 	body: UpdateProductInput
-	params: { id: string }
+	params: ProductIdInput
 }>(async (req, res) => {
-	const { body, params } = req
+	const data = req.body
 
-	const result = await productsService.update(params.id, body)
+	const { id } = req.params
+
+	const result = await productsService.update(id, data)
 
 	sendSuccess(res, result, 'Produit mis à jour avec succès !')
 })
 
 /**
- * Créer un produit
+ * Supprimer un produit
  */
 export const deleteProduct = asyncHandler<{
-	params: { id: string }
+	params: ProductIdInput
 }>(async (req, res) => {
-	const { params } = req
+	const { id } = req.params
 
-	const result = await productsService.remove(params.id)
+	const result = await productsService.remove(id)
 
 	sendSuccess(res, result, 'Produit supprimé avec succès !')
 })
@@ -80,12 +87,14 @@ export const deleteProduct = asyncHandler<{
  * Récupérer les produits par catégorie
  */
 export const getByCategory = asyncHandler<{
-	params: { categorySlug: string }
-	query?: FilterInput
+	params: CategorySlugInput
+	query: FilterInput
 }>(async (req, res) => {
-	const { params, query } = req
+	const { categorySlug } = req.params
 
-	const result = await productsService.getByCategory(params.categorySlug, query)
+	const query = req.query
+
+	const result = await productsService.getByCategory(categorySlug, query)
 
 	sendSuccess(res, result, 'Produits récupérés avec succès !')
 })
@@ -94,9 +103,9 @@ export const getByCategory = asyncHandler<{
  * Récupérer les produits en vedette
  */
 export const getFeatured = asyncHandler<{
-	query?: { limit?: string }
+	query: LimitInput
 }>(async (req, res) => {
-	const limit = req.query?.limit ? parseInt(req.query.limit, 10) : 8
+	const limit = req.query?.limit
 
 	const result = await productsService.getFeatured(limit)
 
@@ -107,11 +116,12 @@ export const getFeatured = asyncHandler<{
  * Récupérer les produits similaires
  */
 export const getRelated = asyncHandler<{
-	params: { id: string }
-	query?: { limit?: string }
+	params: ProductIdInput
+	query: RelatedInput
 }>(async (req, res) => {
 	const { id } = req.params
-	const limit = req.query?.limit ? parseInt(req.query.limit, 10) : 4
+
+	const limit = req.query?.limit
 
 	const result = await productsService.getRelated(id, limit)
 

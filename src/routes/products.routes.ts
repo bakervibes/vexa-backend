@@ -8,17 +8,19 @@ import {
 	getRelated,
 	updateProduct,
 } from '@/controllers/products.controller'
-import { authenticate, authorize } from '@/middlewares/auth'
-import { validateBody, validateParams, validateQuery } from '@/middlewares/validate'
+import { authenticate, authorize } from '@/middlewares/auth.middleware'
+import { validateBody, validateParams, validateQuery } from '@/middlewares/validate.middleware'
 import {
 	categorySlugSchema,
 	createProductSchema,
 	filterSchema,
+	limitSchema,
 	productIdSchema,
+	relatedSchema,
 	updateProductSchema,
 } from '@/validators/products.validator'
 import { Router, type Router as ExpressRouter } from 'express'
-import { strictLimiter } from '../middlewares/rateLimiter'
+import { strictLimiter } from '../middlewares/rateLimiter.middleware'
 
 const router: ExpressRouter = Router()
 
@@ -27,7 +29,13 @@ const router: ExpressRouter = Router()
  * @desc    Récupérer les produits en vedette
  * @access  Public
  */
-router.get('/featured', strictLimiter, getFeatured)
+router.get(
+	'/featured',
+	strictLimiter,
+	validateQuery(limitSchema),
+	// @ts-expect-error - Les middlewares de validation garantissent les types corrects
+	getFeatured
+)
 
 /**
  * @route   GET /api/products/category/:categorySlug
@@ -39,7 +47,8 @@ router.get(
 	strictLimiter,
 	validateParams(categorySlugSchema),
 	validateQuery(filterSchema),
-	getByCategory as any
+	// @ts-expect-error - Les middlewares de validation garantissent les types corrects
+	getByCategory
 )
 
 /**
@@ -47,14 +56,22 @@ router.get(
  * @desc    Récupérer les produits similaires
  * @access  Public
  */
-router.get('/:id/related', strictLimiter, validateParams(productIdSchema), getRelated)
+router.get(
+	'/:id/related',
+	strictLimiter,
+	validateParams(productIdSchema),
+	validateQuery(relatedSchema),
+	// @ts-expect-error - Les middlewares de validation garantissent les types corrects
+	getRelated
+)
 
 /**
  * @route   GET /api/products
  * @desc    Récupérer tous les produits
  * @access  Public
  */
-router.get('/', strictLimiter, validateQuery(filterSchema), getAll as any)
+// @ts-expect-error - Les middlewares de validation garantissent les types corrects
+router.get('/', strictLimiter, validateQuery(filterSchema), getAll)
 
 /**
  * @route   GET /api/products/:slug
@@ -75,7 +92,7 @@ router.post('/', authenticate, authorize('ADMIN'), validateBody(createProductSch
  * @desc    Mettre à jour un produit
  * @access  Private (Admin)
  */
-router.put(
+router.patch(
 	'/:id',
 	authenticate,
 	authorize('ADMIN'),

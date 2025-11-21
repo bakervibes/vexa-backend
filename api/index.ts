@@ -1,5 +1,5 @@
 import { createApp } from '../src/app'
-import { connectDatabase } from '../src/config/database'
+import { connectDatabase } from '../src/config'
 
 // Initialiser l'application
 const app = createApp()

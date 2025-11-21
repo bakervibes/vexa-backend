@@ -13,9 +13,9 @@ import {
 	Prisma,
 	products,
 	Role,
-	users
+	users,
 } from '@prisma/client'
-import { prisma } from '../src/config/database'
+import { prisma } from '../src/config'
 import { toSlug } from '../src/utils/lib'
 import { logger } from '../src/utils/logger'
 import { hashPassword } from '../src/utils/password'
@@ -28,13 +28,13 @@ const CONFIG = {
 	MIN_ORDERS_PER_USER: 1,
 	MAX_ORDERS_PER_USER: 5,
 	MIN_ITEMS_PER_ORDER: 1,
-	MAX_ITEMS_PER_ORDER: 3
+	MAX_ITEMS_PER_ORDER: 3,
 }
 
 const CATEGORIES = [
 	{
 		name: 'Électronique',
-		sub: ['Smartphones', 'Ordinateurs', 'Audio', 'Accessoires']
+		sub: ['Smartphones', 'Ordinateurs', 'Audio', 'Accessoires'],
 	},
 	{ name: 'Jouets & Jeux' },
 	{ name: 'Mode', sub: ['Hommes', 'Femmes', 'Enfants', 'Sport'] },
@@ -43,38 +43,30 @@ const CATEGORIES = [
 	{ name: 'Sport & Loisirs', sub: ['Fitness', 'Randonnée', "Sports d'équipe"] },
 	{ name: 'Beauté' },
 	{ name: 'Automobile', sub: ['Pièces', 'Accessoires', 'Entretien'] },
-	{ name: 'Alimentation' }
+	{ name: 'Alimentation' },
 ]
 
 const ATTRIBUTES = [
 	{
 		name: 'Couleur',
-		options: ['Rouge', 'Bleu', 'Noir', 'Blanc', 'Vert', 'Jaune', 'Rose', 'Gris']
+		options: ['Rouge', 'Bleu', 'Noir', 'Blanc', 'Vert', 'Jaune', 'Rose', 'Gris'],
 	},
 	{ name: 'Taille', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
 	{
 		name: 'Matériau',
-		options: [
-			'Coton',
-			'Polyester',
-			'Cuir',
-			'Métal',
-			'Bois',
-			'Verre',
-			'Plastique'
-		]
+		options: ['Coton', 'Polyester', 'Cuir', 'Métal', 'Bois', 'Verre', 'Plastique'],
 	},
 	{
 		name: 'Marque',
-		options: ['Nike', 'Adidas', 'Samsung', 'Apple', 'Sony', "L'Oréal", 'Ikea']
+		options: ['Nike', 'Adidas', 'Samsung', 'Apple', 'Sony', "L'Oréal", 'Ikea'],
 	},
 	{ name: 'Poids', options: ['<1kg', '1-5kg', '5-10kg', '>10kg'] },
 	{ name: 'Capacité', options: ['32GB', '64GB', '128GB', '256GB', '512GB'] },
 	{ name: 'Énergie', options: ['Électrique', 'Batterie', 'Manuelle'] },
 	{
 		name: 'Style',
-		options: ['Moderne', 'Classique', 'Vintage', 'Sport', 'Casual']
-	}
+		options: ['Moderne', 'Classique', 'Vintage', 'Sport', 'Casual'],
+	},
 ]
 
 // Type pour les attributs avec options incluses
@@ -102,9 +94,7 @@ async function cleanDatabase() {
 }
 
 async function seedUsers(): Promise<users[]> {
-	logger.info(
-		`👥 Création de ${CONFIG.RANDOM_USERS_COUNT} utilisateurs aléatoires...`
-	)
+	logger.info(`👥 Création de ${CONFIG.RANDOM_USERS_COUNT} utilisateurs aléatoires...`)
 
 	const hashedPassword = await hashPassword('#Baker08')
 
@@ -116,8 +106,8 @@ async function seedUsers(): Promise<users[]> {
 			name: 'Admin Vexa',
 			role: Role.ADMIN,
 			isActive: true,
-			emailVerified: new Date()
-		}
+			emailVerified: new Date(),
+		},
 	})
 
 	// Créer les utilisateurs normaux
@@ -128,12 +118,12 @@ async function seedUsers(): Promise<users[]> {
 		role: Role.USER,
 		phone: faker.phone.number(),
 		image: faker.image.avatar(),
-		emailVerified: faker.date.past()
+		emailVerified: faker.date.past(),
 	}))
 
 	const createdUsers = await prisma.users.createManyAndReturn({
 		data: usersData,
-		skipDuplicates: true
+		skipDuplicates: true,
 	})
 
 	const allUsers = [admin, ...createdUsers]
@@ -153,15 +143,13 @@ async function seedCategories(): Promise<categories[]> {
 		description: faker.datatype.boolean({ probability: 0.7 })
 			? faker.lorem.sentences({ min: 2, max: 4 })
 			: null,
-		image: faker.datatype.boolean({ probability: 0.7 })
-			? faker.image.url()
-			: null,
-		isActive: true
+		image: faker.datatype.boolean({ probability: 0.7 }) ? faker.image.url() : null,
+		isActive: true,
 	}))
 
 	const createdParents = await prisma.categories.createManyAndReturn({
 		data: parentData,
-		skipDuplicates: true
+		skipDuplicates: true,
 	})
 
 	createdCategories.push(...createdParents)
@@ -177,12 +165,12 @@ async function seedCategories(): Promise<categories[]> {
 					slug: toSlug(`${cat.name}-${sub}`),
 					description: faker.commerce.productDescription(),
 					parentId: parent.id,
-					isActive: true
+					isActive: true,
 				}))
 
 				const subCategories = await prisma.categories.createManyAndReturn({
 					data: subData,
-					skipDuplicates: true
+					skipDuplicates: true,
 				})
 
 				createdCategories.push(...subCategories)
@@ -209,19 +197,17 @@ async function seedAttributesWithOptions(): Promise<AttributeWithOptions[]> {
 					create: attr.options.map((optName) => ({
 						name: optName,
 						slug: toSlug(`${attr.name}-${optName}`),
-						isActive: true
-					}))
-				}
+						isActive: true,
+					})),
+				},
 			},
-			include: { options: true }
+			include: { options: true },
 		})
 
 		createdAttributes.push(attribute)
 	}
 
-	logger.success(
-		`✓ ${createdAttributes.length} attributs et leurs options créés`
-	)
+	logger.success(`✓ ${createdAttributes.length} attributs et leurs options créés`)
 	return createdAttributes
 }
 
@@ -232,14 +218,10 @@ async function seedProducts(categories: categories[]): Promise<products[]> {
 		const name = faker.commerce.productName()
 		const hasVariants = faker.datatype.boolean({ probability: 0.5 })
 		const hasDiscount = faker.datatype.boolean({ probability: 0.5 })
-		const basePrice = !hasVariants
-			? parseFloat(faker.commerce.price({ min: 300, max: 500 }))
-			: null
+		const basePrice = !hasVariants ? parseFloat(faker.commerce.price({ min: 300, max: 500 })) : null
 		const price =
 			basePrice && hasDiscount
-				? parseFloat(
-						faker.commerce.price({ min: basePrice - 100, max: basePrice + 100 })
-				  )
+				? parseFloat(faker.commerce.price({ min: basePrice - 100, max: basePrice + 100 }))
 				: null
 
 		return {
@@ -251,13 +233,13 @@ async function seedProducts(categories: categories[]): Promise<products[]> {
 			expiresAt: hasDiscount ? faker.date.future() : null,
 			categoryId: faker.helpers.arrayElement(categories).id,
 			isActive: true,
-			images: Array.from({ length: 3 }, () => faker.image.url())
+			images: Array.from({ length: 3 }, () => faker.image.url()),
 		}
 	})
 
 	const createdProducts = await prisma.products.createManyAndReturn({
 		data: productsData,
-		skipDuplicates: true
+		skipDuplicates: true,
 	})
 
 	logger.success(`✓ ${createdProducts.length} produits créés`)
@@ -275,40 +257,33 @@ async function seedProductVariants(
 	for (const product of products) {
 		// Créer des variantes uniquement pour les produits sans basePrice
 		if (product.basePrice === null) {
-			const variantsData = Array.from(
-				{ length: CONFIG.VARIANTS_PER_PRODUCT },
-				(_, j) => {
-					const hasDiscount = faker.datatype.boolean({ probability: 0.5 })
-					const basePrice = parseFloat(
-						faker.commerce.price({ min: 300, max: 500 })
-					)
-					const price = hasDiscount
-						? parseFloat(
-								faker.commerce.price({
-									min: basePrice - 100,
-									max: basePrice + 100
-								})
-						  )
-						: null
+			const variantsData = Array.from({ length: CONFIG.VARIANTS_PER_PRODUCT }, (_, j) => {
+				const hasDiscount = faker.datatype.boolean({ probability: 0.5 })
+				const basePrice = parseFloat(faker.commerce.price({ min: 300, max: 500 }))
+				const price = hasDiscount
+					? parseFloat(
+							faker.commerce.price({
+								min: basePrice - 100,
+								max: basePrice + 100,
+							})
+						)
+					: null
 
-					return {
-						productId: product.id,
-						sku: `${faker.commerce.isbn()}-${j}`,
-						basePrice,
-						price,
-						expiresAt: hasDiscount ? faker.date.future() : null,
-						stock: faker.number.int({ min: 0, max: 100 }),
-						isActive: true
-					}
+				return {
+					productId: product.id,
+					sku: `${faker.commerce.isbn()}-${j}`,
+					basePrice,
+					price,
+					expiresAt: hasDiscount ? faker.date.future() : null,
+					stock: faker.number.int({ min: 0, max: 100 }),
+					isActive: true,
 				}
-			)
+			})
 
-			const productVariants = await prisma.product_variants.createManyAndReturn(
-				{
-					data: variantsData,
-					skipDuplicates: true
-				}
-			)
+			const productVariants = await prisma.product_variants.createManyAndReturn({
+				data: variantsData,
+				skipDuplicates: true,
+			})
 
 			// Lier des options aléatoires aux variantes
 			for (const variant of productVariants) {
@@ -319,14 +294,11 @@ async function seedProductVariants(
 				}[] = []
 
 				for (const attribute of attributes) {
-					if (
-						faker.datatype.boolean({ probability: 0.7 }) &&
-						attribute.options.length > 0
-					) {
+					if (faker.datatype.boolean({ probability: 0.7 }) && attribute.options.length > 0) {
 						variantOptionsData.push({
 							productId: product.id,
 							variantId: variant.id,
-							optionId: faker.helpers.arrayElement(attribute.options).id
+							optionId: faker.helpers.arrayElement(attribute.options).id,
 						})
 					}
 				}
@@ -334,7 +306,7 @@ async function seedProductVariants(
 				if (variantOptionsData.length > 0) {
 					await prisma.product_variant_option.createMany({
 						data: variantOptionsData,
-						skipDuplicates: true
+						skipDuplicates: true,
 					})
 				}
 			}
@@ -353,30 +325,25 @@ async function seedAddresses(users: users[]): Promise<void> {
 		userId: user.id,
 		type: faker.helpers.arrayElement(Object.values(AddressType)),
 		name: faker.datatype.boolean({ probability: 0.8 })
-			? user.name ?? faker.person.fullName()
+			? (user.name ?? faker.person.fullName())
 			: faker.person.fullName(),
 		street: faker.location.streetAddress(),
 		city: faker.location.city(),
-		postalCode: faker.datatype.boolean({ probability: 0.8 })
-			? faker.location.zipCode()
-			: null,
+		postalCode: faker.datatype.boolean({ probability: 0.8 }) ? faker.location.zipCode() : null,
 		country: faker.location.country(),
 		phone: faker.phone.number({ style: 'international' }),
-		isDefault: faker.datatype.boolean({ probability: 0.8 })
+		isDefault: faker.datatype.boolean({ probability: 0.8 }),
 	}))
 
 	await prisma.addresses.createMany({
 		data: addresses,
-		skipDuplicates: true
+		skipDuplicates: true,
 	})
 
 	logger.success(`✓ ${addresses.length} adresses créées`)
 }
 
-async function seedOrdersAndPayments(
-	users: users[],
-	products: products[]
-): Promise<void> {
+async function seedOrdersAndPayments(users: users[], products: products[]): Promise<void> {
 	logger.info('🛍️ Création des commandes et paiements...')
 
 	let orderCount = 0
@@ -384,7 +351,7 @@ async function seedOrdersAndPayments(
 	for (const user of users) {
 		const numOrders = faker.number.int({
 			min: CONFIG.MIN_ORDERS_PER_USER,
-			max: CONFIG.MAX_ORDERS_PER_USER
+			max: CONFIG.MAX_ORDERS_PER_USER,
 		})
 
 		for (let k = 0; k < numOrders; k++) {
@@ -399,13 +366,13 @@ async function seedOrdersAndPayments(
 
 			const itemCount = faker.number.int({
 				min: CONFIG.MIN_ITEMS_PER_ORDER,
-				max: CONFIG.MAX_ITEMS_PER_ORDER
+				max: CONFIG.MAX_ITEMS_PER_ORDER,
 			})
 
 			for (let m = 0; m < itemCount; m++) {
 				const product = faker.helpers.arrayElement(products)
 				const variant = await prisma.product_variants.findFirst({
-					where: { productId: product.id }
+					where: { productId: product.id },
 				})
 
 				if (variant) {
@@ -418,7 +385,7 @@ async function seedOrdersAndPayments(
 						variantId: variant.id,
 						quantity,
 						price,
-						data: { name: product.name, sku: variant.sku }
+						data: { name: product.name, sku: variant.sku },
 					})
 				}
 			}
@@ -433,9 +400,9 @@ async function seedOrdersAndPayments(
 						shippingAddress: {},
 						billingAddress: {},
 						items: {
-							create: orderItems
-						}
-					}
+							create: orderItems,
+						},
+					},
 				})
 
 				await prisma.payments.create({
@@ -444,8 +411,8 @@ async function seedOrdersAndPayments(
 						provider: PaymentProvider.STRIPE,
 						amount: totalAmount,
 						status: PaymentStatus.COMPLETED,
-						transactionId: faker.string.uuid()
-					}
+						transactionId: faker.string.uuid(),
+					},
 				})
 
 				orderCount++
@@ -456,10 +423,7 @@ async function seedOrdersAndPayments(
 	logger.success(`✓ ${orderCount} commandes créées`)
 }
 
-async function seedReviews(
-	users: users[],
-	products: products[]
-): Promise<void> {
+async function seedReviews(users: users[], products: products[]): Promise<void> {
 	logger.info('⭐ Création des avis produits...')
 
 	const reviews = users
@@ -471,13 +435,13 @@ async function seedReviews(
 				productId: product.id,
 				rating: faker.number.int({ min: 1, max: 5 }),
 				comment: faker.lorem.sentence(),
-				isApproved: true
+				isApproved: true,
 			}
 		})
 
 	const createdReviews = await prisma.product_reviews.createManyAndReturn({
 		data: reviews,
-		skipDuplicates: true
+		skipDuplicates: true,
 	})
 
 	logger.success(`✓ ${createdReviews.length} avis créés`)

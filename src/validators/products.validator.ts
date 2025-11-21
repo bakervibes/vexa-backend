@@ -7,11 +7,11 @@ export const filterSchema = z.object({
 	search: z.string().optional(),
 	categories: z.array(z.string()).optional(),
 	options: z.array(z.string()).optional(),
-	minPrice: z.number().min(0).optional(),
-	maxPrice: z.number().min(0).optional(),
-	isActive: z.boolean().optional(),
-	page: z.number().int().min(1).default(1),
-	limit: z.number().int().min(1).max(100).default(20),
+	minPrice: z.coerce.number().min(0).optional(),
+	maxPrice: z.coerce.number().min(0).optional(),
+	isActive: z.coerce.boolean().optional(),
+	page: z.coerce.number().int().min(1).default(1),
+	limit: z.coerce.number().int().min(1).max(100).default(20),
 	sortBy: z.enum(['name', 'price', 'createdAt', 'updatedAt']).default('createdAt'),
 	sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
@@ -117,6 +117,14 @@ export const productIdSchema = z.object({
 	id: z.cuid('ID de produit invalide'),
 })
 
+export const relatedSchema = z.object({
+	limit: z.coerce.number().int().min(1).max(100).default(20),
+})
+
+export const limitSchema = z.object({
+	limit: z.coerce.number().int().min(1).max(100).default(20),
+})
+
 export const productSlugSchema = z.object({
 	slug: z.string().min(1, 'Le slug est requis'),
 })
@@ -130,5 +138,7 @@ export type FilterInput = z.infer<typeof filterSchema>
 export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>
 export type ProductIdInput = z.infer<typeof productIdSchema>
+export type RelatedInput = z.infer<typeof relatedSchema>
+export type LimitInput = z.infer<typeof limitSchema>
 export type ProductSlugInput = z.infer<typeof productSlugSchema>
 export type CategorySlugInput = z.infer<typeof categorySlugSchema>

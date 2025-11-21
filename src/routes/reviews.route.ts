@@ -4,9 +4,9 @@ import {
 	deleteReview,
 	getReviews,
 	updateReview,
-} from '@/controllers/review.controller'
-import { authenticate, authorize } from '@/middlewares/auth'
-import { validateBody, validateParams } from '@/middlewares/validate'
+} from '@/controllers/reviews.controller'
+import { authenticate, authorize } from '@/middlewares/auth.middleware'
+import { validateBody, validateParams } from '@/middlewares/validate.middleware'
 import {
 	addReviewSchema,
 	productIdSchema,
@@ -36,7 +36,7 @@ router.post('/', authenticate, validateBody(addReviewSchema), addReview)
  * @desc    Update a review
  * @access  Private
  */
-router.put(
+router.patch(
 	'/:id',
 	authenticate,
 	validateParams(reviewIdSchema),
@@ -56,7 +56,7 @@ router.delete('/:id', authenticate, validateParams(reviewIdSchema), deleteReview
  * @desc    Approve a review
  * @access  Private (Admin)
  */
-router.put(
+router.patch(
 	'/:id/approve',
 	authenticate,
 	authorize('ADMIN'),

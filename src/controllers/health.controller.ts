@@ -1,4 +1,3 @@
-import type { Request, Response } from 'express'
 import { prisma } from '../config/database'
 import { config } from '../config/env'
 import { asyncHandler } from '../utils/asyncHandler'
@@ -7,7 +6,8 @@ import { sendSuccess } from '../utils/response'
 /**
  * Health check simple
  */
-export const healthCheck = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+
+export const healthCheck = asyncHandler(async (_req, res) => {
 	sendSuccess(
 		res,
 		{
@@ -23,7 +23,7 @@ export const healthCheck = asyncHandler(async (_req: Request, res: Response): Pr
 /**
  * Vérification de la connexion à la base de données
  */
-export const databaseCheck = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+export const databaseCheck = asyncHandler(async (_req, res) => {
 	const start = Date.now()
 
 	// Test de connexion simple

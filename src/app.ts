@@ -6,19 +6,19 @@ import 'express-async-errors' // Doit être importé tôt pour catch les erreurs
 import helmet from 'helmet'
 import { connectDatabase } from './config/database'
 import { config } from './config/env'
-import { errorHandler, notFoundHandler } from './middlewares/errorHandler'
-import { generalLimiter } from './middlewares/rateLimiter'
-import { requestLogger } from './middlewares/requestLogger'
+import { errorHandler, notFoundHandler } from './middlewares/errorHandler.middleware'
+import { generalLimiter } from './middlewares/rateLimiter.middleware'
+import { requestLogger } from './middlewares/requestLogger.middleware'
 import { logger } from './utils/logger'
 
 // Import des routes
 import authRouter from './routes/auth.routes'
-import cartRouter from './routes/cart.route'
+import cartRouter from './routes/carts.route'
 import healthRouter from './routes/health.routes'
-import orderRouter from './routes/order.route'
-import paymentRouter from './routes/payment.route'
+import orderRouter from './routes/orders.route'
+import paymentRouter from './routes/payments.route'
 import productsRouter from './routes/products.routes'
-import reviewRouter from './routes/review.route'
+import reviewRouter from './routes/reviews.route'
 // import userRouter from './routes/user.routes';
 // Ajoutez vos routes ici
 
@@ -70,14 +70,11 @@ export const createApp = (): Application => {
 	// Routes d'authentification
 	app.use(`${config.server.apiPrefix}/auth`, authRouter)
 
-	// Routes utilisateurs
-	// app.use(`${config.server.apiPrefix}/users`, userRouter);
-
 	// Routes produits
 	app.use(`${config.server.apiPrefix}/products`, productsRouter)
 
 	// Routes panier
-	app.use(`${config.server.apiPrefix}/cart`, cartRouter)
+	app.use(`${config.server.apiPrefix}/carts`, cartRouter)
 
 	// Routes commandes
 	app.use(`${config.server.apiPrefix}/orders`, orderRouter)

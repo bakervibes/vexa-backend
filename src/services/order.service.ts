@@ -2,7 +2,11 @@
  * Order Service
  */
 
-import type { CreateOrderInput, UpdateOrderStatusInput } from '@/validators/order.validator'
+import type {
+	AddressInput,
+	CreateOrderInput,
+	UpdateOrderStatusInput,
+} from '@/validators/order.validator'
 import { prisma } from '../config/database'
 import { BadRequestError, NotFoundError } from '../utils/ApiError'
 import * as cartService from './cart.service'
@@ -15,22 +19,30 @@ export const createOrder = async (userId: string, data: CreateOrderInput) => {
 		data
 
 	// 1. Get user's cart
-	const cart = (await cartService.getCart(userId, undefined)) as any
+	const cart = await cartService.getCart(userId, undefined)
 
 	if (!cart || cart.items.length === 0) {
 		throw new BadRequestError('Cart is empty')
 	}
 
 	// 2. Resolve addresses
-	let finalShippingAddress = shippingAddress
-	let finalBillingAddress = billingAddress
+	let finalShippingAddress: AddressInput | undefined = shippingAddress
+	let finalBillingAddress: AddressInput | undefined = billingAddress
 
 	if (shippingAddressId) {
 		const addr = await prisma.addresses.findUnique({
 			where: { id: shippingAddressId },
 		})
 		if (!addr) throw new NotFoundError('Shipping address not found')
-		finalShippingAddress = addr
+		// Map Prisma address to AddressInput (convert null to undefined)
+		finalShippingAddress = {
+			name: addr.name,
+			street: addr.street,
+			city: addr.city,
+			country: addr.country,
+			postalCode: addr.postalCode ?? undefined,
+			phone: addr.phone ?? undefined,
+		}
 	}
 
 	if (billingAddressId) {
@@ -38,7 +50,15 @@ export const createOrder = async (userId: string, data: CreateOrderInput) => {
 			where: { id: billingAddressId },
 		})
 		if (!addr) throw new NotFoundError('Billing address not found')
-		finalBillingAddress = addr
+		// Map Prisma address to AddressInput (convert null to undefined)
+		finalBillingAddress = {
+			name: addr.name,
+			street: addr.street,
+			city: addr.city,
+			country: addr.country,
+			postalCode: addr.postalCode ?? undefined,
+			phone: addr.phone ?? undefined,
+		}
 	}
 
 	if (!finalShippingAddress) {
@@ -82,8 +102,8 @@ export const createOrder = async (userId: string, data: CreateOrderInput) => {
 			userId,
 			orderNumber: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
 			totalAmount,
-			shippingAddress: finalShippingAddress as any, // JSON
-			billingAddress: finalBillingAddress as any, // JSON
+			shippingAddress: finalShippingAddress,
+			billingAddress: finalBillingAddress,
 			status: 'PENDING',
 			items: {
 				create: orderItemsData,

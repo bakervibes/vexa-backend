@@ -4,9 +4,9 @@ import {
 	getOrder,
 	getOrders,
 	updateStatus,
-} from '@/controllers/order.controller'
-import { authenticate, authorize } from '@/middlewares/auth'
-import { validateBody, validateParams } from '@/middlewares/validate'
+} from '@/controllers/orders.controller'
+import { authenticate, authorize } from '@/middlewares/auth.middleware'
+import { validateBody, validateParams } from '@/middlewares/validate.middleware'
 import {
 	createOrderSchema,
 	orderIdSchema,
@@ -42,14 +42,14 @@ router.get('/:id', authenticate, validateParams(orderIdSchema), getOrder)
  * @desc    Cancel order
  * @access  Private
  */
-router.put('/:id/cancel', authenticate, validateParams(orderIdSchema), cancelOrder)
+router.patch('/:id/cancel', authenticate, validateParams(orderIdSchema), cancelOrder)
 
 /**
  * @route   PUT /api/orders/:id/status
  * @desc    Update order status
  * @access  Private (Admin)
  */
-router.put(
+router.patch(
 	'/:id/status',
 	authenticate,
 	authorize('ADMIN'),

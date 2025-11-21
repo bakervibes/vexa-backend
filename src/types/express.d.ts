@@ -1,12 +1,9 @@
-import type { User } from '@prisma/client'
+import type { users } from '@prisma/client'
 
-/**
- * Extension des types Express pour ajouter les propriétés personnalisées
- */
 declare global {
 	namespace Express {
 		interface Request {
-			user?: User
+			user?: users
 			userId?: string
 		}
 	}

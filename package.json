@@ -6,6 +6,7 @@
 		"dev": "ts-node-dev -r tsconfig-paths/register --no-deps --respawn --transpile-only src/server.ts",
 		"build": "run-p type-check lint:check \"build-only {@}\" --",
 		"build-only": "rimraf dist && tsc",
+		"vercel-build": "prisma generate && prisma db push --accept-data-loss && npm run build-only",
 		"start": "node dist/server.js",
 		"start:prod": "NODE_ENV=production node dist/server.js",
 		"postinstall": "prisma generate",

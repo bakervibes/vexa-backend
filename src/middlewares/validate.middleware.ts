@@ -3,64 +3,48 @@ import type { NextFunction, Request, Response } from 'express'
 import type { z, ZodError, ZodTypeAny } from 'zod'
 
 /**
- * Middleware de validation pour le body de la requête
+ * Fonction utilitaire pour formater les erreurs Zod
  */
-export const validateBody = <TSchema extends ZodTypeAny>(schema: TSchema) => {
-	return async (req: Request, _res: Response, next: NextFunction) => {
-		try {
-			await schema.parseAsync(req.body)
-			next()
-		} catch (error) {
-			const zodError = error as ZodError
+const formatZodError = (error: ZodError) => {
+	const details = error.issues.map((err: z.core.$ZodIssue) => ({
+		field: err.path.join('.'),
+		message: err.message,
+	}))
 
-			const details = zodError.issues.map((err: z.core.$ZodIssue) => ({
-				field: err.path.join('.'),
-				message: err.message,
-			}))
+	// Message global automatique : on join seulement les messages
+	const globalMessage = details.map((d) => d.message).join(', ')
 
-			next(new ValidationError('Données du body invalides', details))
-		}
-	}
+	return { details, globalMessage }
 }
 
 /**
- * Middleware de validation pour les params de la requête
+ * Middleware générique de validation
  */
-export const validateParams = <TSchema extends ZodTypeAny>(schema: TSchema) => {
-	return async (req: Request, _res: Response, next: NextFunction) => {
-		try {
-			await schema.parseAsync(req.params)
-			next()
-		} catch (error) {
-			const zodError = error as ZodError
-
-			const details = zodError.issues.map((err: z.core.$ZodIssue) => ({
-				field: err.path.join('.'),
-				message: err.message,
-			}))
-
-			next(new ValidationError('Paramètres invalides', details))
+const createValidator =
+	(type: 'body' | 'params' | 'query') =>
+	<TSchema extends ZodTypeAny>(schema: TSchema) => {
+		return async (req: Request, _res: Response, next: NextFunction) => {
+			try {
+				await schema.parseAsync(req[type])
+				next()
+			} catch (error) {
+				const { details, globalMessage } = formatZodError(error as ZodError)
+				next(new ValidationError(globalMessage, details))
+			}
 		}
 	}
-}
 
 /**
- * Middleware de validation pour la query de la requête
+ * Validation Body
  */
-export const validateQuery = <TSchema extends ZodTypeAny>(schema: TSchema) => {
-	return async (req: Request, _res: Response, next: NextFunction) => {
-		try {
-			await schema.parseAsync(req.query)
-			next()
-		} catch (error) {
-			const zodError = error as ZodError
+export const validateBody = createValidator('body')
 
-			const details = zodError.issues.map((err: z.core.$ZodIssue) => ({
-				field: err.path.join('.'),
-				message: err.message,
-			}))
+/**
+ * Validation Params
+ */
+export const validateParams = createValidator('params')
 
-			next(new ValidationError('Paramètres de requête invalides', details))
-		}
-	}
-}
+/**
+ * Validation Query
+ */
+export const validateQuery = createValidator('query')

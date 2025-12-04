@@ -4,7 +4,7 @@
  */
 
 import type { LoginInput, RefreshTokenInput, RegisterInput } from '@/validators/auth.validator'
-import type { users } from '@prisma/client'
+import { Role, type users } from '@prisma/client'
 import { prisma } from '../config/database'
 import type { TokenPair } from '../types/jwt'
 import { BadRequestError, ConflictError, UnauthorizedError } from '../utils/ApiError'
@@ -19,16 +19,24 @@ interface AuthResponse {
 /**
  * Créer un nouveau compte utilisateur
  */
-export const register = async (input: RegisterInput): Promise<AuthResponse> => {
+export const register = async (input: RegisterInput, sessionId?: string): Promise<AuthResponse> => {
 	const { email, password, name } = input
 
-	// Vérifier si l'email existe déjà
-	const existingUser = await prisma.users.findUnique({
-		where: { email },
+	// Normaliser l'email (trim et lowercase)
+	const normalizedEmail = email.trim().toLowerCase()
+
+	// Vérifier si l'email existe déjà (recherche insensible à la casse)
+	const existingUser = await prisma.users.findFirst({
+		where: {
+			email: {
+				equals: normalizedEmail,
+				mode: 'insensitive',
+			},
+		},
 	})
 
 	if (existingUser) {
-		throw new ConflictError('Un compte avec cet email existe déjà')
+		throw new ConflictError('A user with this email already exists !')
 	}
 
 	// Hasher le mot de passe
@@ -37,9 +45,11 @@ export const register = async (input: RegisterInput): Promise<AuthResponse> => {
 	// Créer l'utilisateur
 	const user = await prisma.users.create({
 		data: {
-			email,
-			password: hashedPassword,
 			name,
+			email: normalizedEmail,
+			password: hashedPassword,
+			role: Role.USER,
+			isActive: true,
 		},
 	})
 
@@ -49,8 +59,15 @@ export const register = async (input: RegisterInput): Promise<AuthResponse> => {
 		email: user.email,
 	})
 
+	// Merge guest cart if session ID is provided
+	if (sessionId) {
+		await cartService.mergeCarts(user.id, sessionId)
+	}
+
 	return { user, tokens }
 }
+
+import * as cartService from './carts.service'
 
 /**
  * Se connecter
@@ -58,24 +75,32 @@ export const register = async (input: RegisterInput): Promise<AuthResponse> => {
 export const login = async (input: LoginInput): Promise<AuthResponse> => {
 	const { email, password } = input
 
-	// Trouver l'utilisateur
-	const user = await prisma.users.findUnique({
-		where: { email },
+	// Normaliser l'email (trim et lowercase)
+	const normalizedEmail = email.trim().toLowerCase()
+
+	// Trouver l'utilisateur (recherche insensible à la casse)
+	const user = await prisma.users.findFirst({
+		where: {
+			email: {
+				equals: normalizedEmail,
+				mode: 'insensitive',
+			},
+		},
 	})
 
 	if (!user) {
-		throw new UnauthorizedError('Email ou mot de passe incorrect')
+		throw new UnauthorizedError('Email ou mot de passe incorrect !')
 	}
 
 	if (!user.password) {
-		throw new BadRequestError("Cette méthode de connexion n'est pas supportée pour cet email")
+		throw new BadRequestError("Cette méthode de connexion n'est pas supportée pour cet email !")
 	}
 
 	// Vérifier le mot de passe
 	const isPasswordValid = await comparePassword(password, user.password)
 
 	if (!isPasswordValid) {
-		throw new UnauthorizedError('Email ou mot de passe incorrect')
+		throw new UnauthorizedError('Email ou mot de passe incorrect !')
 	}
 
 	// Générer les tokens
@@ -83,6 +108,11 @@ export const login = async (input: LoginInput): Promise<AuthResponse> => {
 		userId: user.id,
 		email: user.email,
 	})
+
+	// Merge guest cart if session ID is provided
+	// if (sessionId) {
+	// 	await cartService.mergeCarts(user.id, sessionId)
+	// }
 
 	return { user, tokens }
 }
@@ -94,7 +124,7 @@ export const refreshAccessToken = async (input: RefreshTokenInput): Promise<Toke
 	const { refreshToken } = input
 
 	if (!refreshToken) {
-		throw new BadRequestError('Refresh token manquant')
+		throw new BadRequestError('Refresh token manquant !')
 	}
 
 	// Vérifier le refresh token
@@ -106,7 +136,7 @@ export const refreshAccessToken = async (input: RefreshTokenInput): Promise<Toke
 	})
 
 	if (!user) {
-		throw new UnauthorizedError('Utilisateur non trouvé')
+		throw new UnauthorizedError('Utilisateur non trouvé !')
 	}
 
 	// Générer de nouveaux tokens

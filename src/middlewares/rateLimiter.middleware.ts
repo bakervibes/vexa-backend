@@ -20,13 +20,28 @@ export const generalLimiter = rateLimit({
  * Rate limiter strict pour les routes sensibles (login, register, etc.)
  */
 export const strictLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: 5, // 5 requêtes max
-	message: 'Trop de tentatives, veuillez réessayer plus tard',
+	windowMs: config.rateLimit.windowMs,
+	max: config.rateLimit.maxRequests,
+	message:
+		'Trop de tentatives, veuillez réessayer dans ' +
+		config.rateLimit.windowMs / 60000 +
+		' minutes' +
+		' (' +
+		config.rateLimit.maxRequests +
+		' requêtes max)',
 	standardHeaders: true,
 	legacyHeaders: false,
 	handler: (_req, _res, next) => {
-		next(new TooManyRequestsError('Trop de tentatives, veuillez réessayer dans 15 minutes'))
+		next(
+			new TooManyRequestsError(
+				'Trop de tentatives, veuillez réessayer dans ' +
+					config.rateLimit.windowMs / 60000 +
+					' minutes' +
+					' (' +
+					config.rateLimit.maxRequests +
+					' requêtes max)'
+			)
+		)
 	},
 })
 
@@ -34,8 +49,8 @@ export const strictLimiter = rateLimit({
  * Rate limiter pour les API externes ou actions coûteuses
  */
 export const apiLimiter = rateLimit({
-	windowMs: 60 * 1000, // 1 minute
-	max: 10, // 10 requêtes par minute
+	windowMs: config.rateLimit.windowMs,
+	max: config.rateLimit.maxRequests,
 	message: "Limite d'API atteinte",
 	standardHeaders: true,
 	legacyHeaders: false,

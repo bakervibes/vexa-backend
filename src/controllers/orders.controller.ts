@@ -7,8 +7,8 @@ import type {
 	CreateOrderInput,
 	OrderIdInput,
 	UpdateOrderStatusInput,
-} from '@/validators/order.validator'
-import * as orderService from '../services/order.service'
+} from '@/validators/orders.validator'
+import * as orderService from '../services/orders.service'
 import { asyncHandler } from '../utils/asyncHandler'
 import { sendSuccess } from '../utils/response'
 
@@ -18,10 +18,10 @@ import { sendSuccess } from '../utils/response'
 export const createOrder = asyncHandler<{
 	body: CreateOrderInput
 }>(async (req, res) => {
-	const userId = req.user?.id
+	const userId = req.userId
 
 	if (!userId) {
-		throw new UnauthorizedError('Utilisateur non connecté')
+		throw new UnauthorizedError('User not logged in !')
 	}
 
 	const data = req.body
@@ -34,16 +34,25 @@ export const createOrder = asyncHandler<{
 /**
  * Get user orders
  */
-export const getOrders = asyncHandler(async (req, res) => {
-	const userId = req.user?.id
+export const getUserOrders = asyncHandler(async (req, res) => {
+	const userId = req.userId
 
 	if (!userId) {
-		throw new UnauthorizedError('Utilisateur non connecté')
+		throw new UnauthorizedError('User not logged in !')
 	}
 
 	const result = await orderService.getUserOrders(userId)
 
-	sendSuccess(res, result, 'Orders retrieved successfully')
+	sendSuccess(res, result, 'Orders retrieved successfully !')
+})
+
+/**
+ * Get all orders
+ */
+export const getOrders = asyncHandler(async (_req, res) => {
+	const result = await orderService.getAllOrders()
+
+	sendSuccess(res, result, 'Orders retrieved successfully !')
 })
 
 /**
@@ -52,17 +61,36 @@ export const getOrders = asyncHandler(async (req, res) => {
 export const getOrder = asyncHandler<{
 	params: OrderIdInput
 }>(async (req, res) => {
-	const userId = req.user?.id
+	const userId = req.userId
 
 	if (!userId) {
-		throw new UnauthorizedError('Utilisateur non connecté')
+		throw new UnauthorizedError('User not logged in !')
 	}
 
 	const { id } = req.params
 
 	const result = await orderService.getOrder(id, userId)
 
-	sendSuccess(res, result, 'Order retrieved successfully')
+	sendSuccess(res, result, 'Order retrieved successfully !')
+})
+
+/**
+ * Get order by order number
+ */
+export const getOrderByNumber = asyncHandler<{
+	params: { orderNumber: string }
+}>(async (req, res) => {
+	const userId = req.userId
+
+	if (!userId) {
+		throw new UnauthorizedError('User not logged in !')
+	}
+
+	const { orderNumber } = req.params
+
+	const result = await orderService.getOrderByNumber(orderNumber, userId)
+
+	sendSuccess(res, result, 'Order retrieved successfully !')
 })
 
 /**
@@ -86,10 +114,10 @@ export const updateStatus = asyncHandler<{
 export const cancelOrder = asyncHandler<{
 	params: OrderIdInput
 }>(async (req, res) => {
-	const userId = req.user?.id
+	const userId = req.userId
 
 	if (!userId) {
-		throw new UnauthorizedError('Utilisateur non connecté')
+		throw new UnauthorizedError('User not logged in !')
 	}
 
 	const { id } = req.params

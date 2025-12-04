@@ -1,34 +1,43 @@
 import { z } from 'zod'
+import { commentSchema, cuidSchema, limitSchema, pageSchema, ratingSchema } from './common.schemas'
 
 /**
  * Schema for adding a review
  */
 export const addReviewSchema = z.object({
-	productId: z.string().cuid('Invalid product ID'),
-	rating: z.number().int().min(1).max(5, 'Rating must be between 1 and 5'),
-	comment: z.string().optional(),
+	productId: cuidSchema,
+	rating: ratingSchema,
+	comment: commentSchema,
 })
 
 /**
  * Schema for updating a review
  */
 export const updateReviewSchema = z.object({
-	rating: z.number().int().min(1).max(5, 'Rating must be between 1 and 5').optional(),
-	comment: z.string().optional(),
+	rating: ratingSchema,
+	comment: commentSchema,
 })
 
 /**
  * Schema for review ID parameter
  */
 export const reviewIdSchema = z.object({
-	id: z.string().cuid('Invalid review ID'),
+	id: cuidSchema,
 })
 
 /**
  * Schema for product ID parameter
  */
 export const productIdSchema = z.object({
-	productId: z.string().cuid('Invalid product ID'),
+	productId: cuidSchema,
+})
+
+/**
+ * Schema for reviews query parameters (pagination)
+ */
+export const reviewsQuerySchema = z.object({
+	page: pageSchema,
+	limit: limitSchema,
 })
 
 // Types
@@ -36,3 +45,4 @@ export type AddReviewInput = z.infer<typeof addReviewSchema>
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>
 export type ReviewIdInput = z.infer<typeof reviewIdSchema>
 export type ProductIdInput = z.infer<typeof productIdSchema>
+export type ReviewsQueryInput = z.infer<typeof reviewsQuerySchema>

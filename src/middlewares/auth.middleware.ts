@@ -20,13 +20,13 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
 		const authHeader = req.headers.authorization
 
 		if (!authHeader?.startsWith('Bearer ')) {
-			throw new UnauthorizedError("Token d'authentification invalide")
+			throw new UnauthorizedError("Token d'authentification invalide !")
 		}
 
 		const token = authHeader.split(' ')[1]
 
 		if (!token) {
-			throw new UnauthorizedError("Token d'authentification manquant")
+			throw new UnauthorizedError("Token d'authentification manquant !")
 		}
 
 		// 2. Vérifier et décoder le token
@@ -38,7 +38,7 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
 		})
 
 		if (!user) {
-			throw new UnauthorizedError('Utilisateur non trouvé')
+			throw new UnauthorizedError('Utilisateur non trouvé !')
 		}
 
 		// 4. Attacher l'utilisateur à la requête
@@ -48,9 +48,9 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
 		next()
 	} catch (error) {
 		if (error instanceof jwt.TokenExpiredError) {
-			next(new UnauthorizedError('Token expiré'))
+			next(new UnauthorizedError('Token expiré !'))
 		} else if (error instanceof jwt.JsonWebTokenError) {
-			next(new UnauthorizedError('Token invalide'))
+			next(new UnauthorizedError('Token invalide !'))
 		} else {
 			next(error)
 		}
@@ -98,11 +98,11 @@ export const optionalAuth = async (req: Request, _res: Response, next: NextFunct
 export const requireRole = (...roles: Role[]) => {
 	return (req: Request, _res: Response, next: NextFunction) => {
 		if (!req.user) {
-			throw new UnauthorizedError('Non authentifié')
+			throw new UnauthorizedError('Non authentifié !')
 		}
 
 		if (!roles.includes(req.user.role)) {
-			throw new ForbiddenError('Accès non autorisé pour ce rôle')
+			throw new ForbiddenError('Accès non autorisé pour ce rôle !')
 		}
 
 		next()

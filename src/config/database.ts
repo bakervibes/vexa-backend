@@ -10,7 +10,7 @@ import { config } from './env'
 const pool = new Pool({
 	connectionString: config.database.url,
 	ssl: {
-		rejectUnauthorized: false, // Accepte les certificats auto-signés (nécessaire pour Aiven et autres providers)
+		rejectUnauthorized: false,
 	},
 })
 
@@ -29,7 +29,7 @@ export const prisma =
 	globalForPrisma.prisma ||
 	new PrismaClient({
 		adapter,
-		log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+		log: ['error'],
 		errorFormat: 'pretty',
 	})
 

@@ -1,38 +1,25 @@
 import { z } from 'zod'
-
-// ========== Schémas de base ==========
-
-const emailSchema = z.string().email('Email invalide').toLowerCase().trim()
-
-const passwordSchema = z
-	.string({ message: 'Mot de passe requis' })
-	.min(8, 'Le mot de passe doit contenir au moins 8 caractères')
-
-const nameSchema = z
-	.string({ message: 'Nom requis' })
-	.min(2, 'Le nom doit contenir au moins 2 caractères')
-	.max(100, 'Le nom ne peut pas dépasser 100 caractères')
-	.trim()
+import { emailSchema, nameSchema, passwordSchema } from './common.schemas'
 
 // ========== Schémas de validation ==========
 
-export const registerBodySchema = z.object({
+export const registerSchema = z.object({
+	name: nameSchema,
 	email: emailSchema,
 	password: passwordSchema,
-	name: nameSchema,
 })
 
-export const loginBodySchema = z.object({
+export const loginSchema = z.object({
 	email: emailSchema,
-	password: z.string({ message: 'Mot de passe requis' }),
+	password: passwordSchema,
 })
 
-export const refreshTokenBodySchema = z.object({
+export const refreshTokenSchema = z.object({
 	refreshToken: z.string({ message: 'Refresh token requis' }),
 })
 
 // ========== Types inférés ==========
 
-export type RegisterInput = z.infer<typeof registerBodySchema>
-export type LoginInput = z.infer<typeof loginBodySchema>
-export type RefreshTokenInput = z.infer<typeof refreshTokenBodySchema>
+export type RegisterInput = z.infer<typeof registerSchema>
+export type LoginInput = z.infer<typeof loginSchema>
+export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>

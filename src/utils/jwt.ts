@@ -17,7 +17,7 @@ export const generateAccessToken = (payload: JwtPayload): string => {
  */
 export const generateRefreshToken = (payload: JwtPayload): string => {
 	if (!config.jwt.refreshSecret) {
-		throw new Error('JWT_REFRESH_SECRET non configuré')
+		throw new Error('JWT_REFRESH_SECRET non configuré !')
 	}
 
 	return jwt.sign(payload, config.jwt.refreshSecret, {
@@ -51,12 +51,12 @@ export const verifyAccessToken = (token: string): JwtPayload => {
 		return decoded
 	} catch (error) {
 		if (error instanceof jwt.TokenExpiredError) {
-			throw new UnauthorizedError('Token expiré')
+			throw new UnauthorizedError('Token expiré !')
 		}
 		if (error instanceof jwt.JsonWebTokenError) {
-			throw new UnauthorizedError('Token invalide')
+			throw new UnauthorizedError('Token invalide !')
 		}
-		throw new UnauthorizedError('Échec de vérification du token')
+		throw new UnauthorizedError('Échec de vérification du token !')
 	}
 }
 
@@ -65,7 +65,7 @@ export const verifyAccessToken = (token: string): JwtPayload => {
  */
 export const verifyRefreshToken = (token: string): JwtPayload => {
 	if (!config.jwt.refreshSecret) {
-		throw new Error('JWT_REFRESH_SECRET non configuré')
+		throw new Error('JWT_REFRESH_SECRET non configuré !')
 	}
 
 	try {
@@ -73,12 +73,12 @@ export const verifyRefreshToken = (token: string): JwtPayload => {
 		return decoded
 	} catch (error) {
 		if (error instanceof jwt.TokenExpiredError) {
-			throw new UnauthorizedError('Refresh token expiré')
+			throw new UnauthorizedError('Refresh token expiré !')
 		}
 		if (error instanceof jwt.JsonWebTokenError) {
-			throw new UnauthorizedError('Refresh token invalide')
+			throw new UnauthorizedError('Refresh token invalide !')
 		}
-		throw new UnauthorizedError('Échec de vérification du refresh token')
+		throw new UnauthorizedError('Échec de vérification du refresh token !')
 	}
 }
 

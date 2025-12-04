@@ -3,8 +3,8 @@
  */
 
 import { BadRequestError, UnauthorizedError } from '@/utils'
-import type { CreatePaymentIntentInput, OrderIdInput } from '@/validators/payment.validator'
-import * as paymentService from '../services/payment.service'
+import type { CreatePaymentIntentInput, OrderIdInput } from '@/validators/payments.validator'
+import * as paymentService from '../services/payments.service'
 import { asyncHandler } from '../utils/asyncHandler'
 import { sendSuccess } from '../utils/response'
 
@@ -14,17 +14,17 @@ import { sendSuccess } from '../utils/response'
 export const createIntent = asyncHandler<{
 	body: CreatePaymentIntentInput
 }>(async (req, res) => {
-	const userId = req.user?.id
+	const userId = req.userId
 
 	const data = req.body
 
 	if (!userId) {
-		throw new UnauthorizedError('Utilisateur non connecté')
+		throw new UnauthorizedError('User not logged in !')
 	}
 
 	const result = await paymentService.createPaymentIntent(userId, data)
 
-	sendSuccess(res, result, 'Payment intent created successfully')
+	sendSuccess(res, result, 'Payment intent created successfully !')
 })
 
 /**
@@ -34,7 +34,7 @@ export const handleWebhook = asyncHandler(async (req, res) => {
 	const signature = req.headers['stripe-signature'] as string | undefined
 
 	if (!signature) {
-		throw new BadRequestError('Missing stripe signature')
+		throw new BadRequestError('Missing stripe signature !')
 	}
 
 	const result = await paymentService.handleWebhook(req.body, signature)
@@ -48,15 +48,15 @@ export const handleWebhook = asyncHandler(async (req, res) => {
 export const getPaymentStatus = asyncHandler<{
 	params: OrderIdInput
 }>(async (req, res) => {
-	const userId = req.user?.id
+	const userId = req.userId
 
 	const { orderId } = req.params
 
 	if (!userId) {
-		throw new UnauthorizedError('Utilisateur non connecté')
+		throw new UnauthorizedError('User not logged in !')
 	}
 
 	const result = await paymentService.getPaymentStatus(orderId, userId)
 
-	sendSuccess(res, result, 'Payment status retrieved successfully')
+	sendSuccess(res, result, 'Payment status retrieved successfully !')
 })

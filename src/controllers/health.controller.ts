@@ -4,7 +4,7 @@ import { asyncHandler } from '../utils/asyncHandler'
 import { sendSuccess } from '../utils/response'
 
 /**
- * Health check simple
+ * Simple health check
  */
 
 export const healthCheck = asyncHandler(async (_req, res) => {
@@ -16,17 +16,17 @@ export const healthCheck = asyncHandler(async (_req, res) => {
 			uptime: process.uptime(),
 			environment: config.env,
 		},
-		'Service opérationnel'
+		'Service operational'
 	)
 })
 
 /**
- * Vérification de la connexion à la base de données
+ * Database connection check
  */
 export const databaseCheck = asyncHandler(async (_req, res) => {
 	const start = Date.now()
 
-	// Test de connexion simple
+	// Simple connection test
 	await prisma.$queryRaw`SELECT 1`
 
 	const latency = Date.now() - start
@@ -38,6 +38,6 @@ export const databaseCheck = asyncHandler(async (_req, res) => {
 			latency: `${latency}ms`,
 			timestamp: new Date().toISOString(),
 		},
-		'Base de données connectée'
+		'Database connected'
 	)
 })

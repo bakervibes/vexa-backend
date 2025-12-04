@@ -1,46 +1,53 @@
 import { z } from 'zod'
+import {
+	categoriesFilterSchema,
+	cuidSchema,
+	descriptionSchema,
+	imagesSchema,
+	limitSchema,
+	metaDescriptionSchema,
+	metaTitleSchema,
+	nameLongSchema,
+	optionsFilterSchema,
+	pageSchema,
+	priceRangeFilterSchema,
+	priceSchema,
+	searchSchema,
+	skuSchema,
+	slugSchema,
+	sortBySchema,
+	sortOrderSchema,
+	stockSchema,
+} from './common.schemas'
 
 /**
  * Schéma de validation pour le filtrage des produits
  */
 export const filterSchema = z.object({
-	search: z.string().optional(),
-	categories: z.array(z.string()).optional(),
-	options: z.array(z.string()).optional(),
-	minPrice: z.coerce.number().min(0).optional(),
-	maxPrice: z.coerce.number().min(0).optional(),
-	isActive: z.coerce.boolean().optional(),
-	page: z.coerce.number().int().min(1).default(1),
-	limit: z.coerce.number().int().min(1).max(100).default(20),
-	sortBy: z.enum(['name', 'price', 'createdAt', 'updatedAt']).default('createdAt'),
-	sortOrder: z.enum(['asc', 'desc']).default('desc'),
+	search: searchSchema.optional(),
+	categories: categoriesFilterSchema.optional(),
+	options: optionsFilterSchema.optional(),
+	priceRange: priceRangeFilterSchema.optional(),
+	page: pageSchema.optional(),
+	sortBy: sortBySchema.optional(),
+	sortOrder: sortOrderSchema.optional(),
 })
 
 /**
  * Schéma pour les options de variante
  */
 const variantOptionSchema = z.object({
-	optionId: z.cuid("ID d'option invalide"),
+	optionId: cuidSchema,
 })
 
 /**
  * Schéma pour les variantes de produit
  */
 const productVariantSchema = z.object({
-	sku: z
-		.string({ message: 'Le SKU est requis' })
-		.min(1, 'Le SKU est requis')
-		.max(100, 'Le SKU ne peut pas dépasser 100 caractères'),
-	basePrice: z
-		.number({ message: 'Le prix de base est requis' })
-		.min(0, 'Le prix de base doit être positif'),
-	price: z.number().min(0, 'Le prix doit être positif').optional(),
-	stock: z
-		.number({ message: 'Le stock est requis' })
-		.int('Le stock doit être un nombre entier')
-		.min(0, 'Le stock doit être positif')
-		.default(0),
-	isActive: z.boolean().optional().default(true),
+	sku: skuSchema,
+	basePrice: priceSchema,
+	price: priceSchema,
+	stock: stockSchema,
 	options: z.array(variantOptionSchema).optional(),
 })
 
@@ -48,31 +55,15 @@ const productVariantSchema = z.object({
  * Schéma de validation pour la création d'un produit
  */
 export const createProductSchema = z.object({
-	categoryId: z.cuid('ID de catégorie invalide').optional(),
-	name: z
-		.string({ message: 'Le nom est requis' })
-		.min(1, 'Le nom est requis')
-		.max(255, 'Le nom ne peut pas dépasser 255 caractères')
-		.trim(),
-	slug: z
-		.string({ message: 'Le slug est requis' })
-		.min(1, 'Le slug est requis')
-		.max(255, 'Le slug ne peut pas dépasser 255 caractères')
-		.regex(
-			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-			'Le slug doit être en minuscules et ne peut contenir que des lettres, chiffres et tirets'
-		)
-		.trim(),
-	description: z.string().optional(),
-	basePrice: z.number().min(0, 'Le prix de base doit être positif').optional(),
-	price: z.number().min(0, 'Le prix doit être positif').optional(),
-	images: z.array(z.string().url("URL d'image invalide")).optional().default([]),
-	isActive: z.boolean().optional().default(true),
-	metaTitle: z.string().max(60, 'Le meta titre ne peut pas dépasser 60 caractères').optional(),
-	metaDescription: z
-		.string()
-		.max(160, 'La meta description ne peut pas dépasser 160 caractères')
-		.optional(),
+	categoryId: cuidSchema,
+	name: nameLongSchema,
+	slug: slugSchema,
+	description: descriptionSchema,
+	basePrice: priceSchema,
+	price: priceSchema,
+	images: imagesSchema,
+	metaTitle: metaTitleSchema,
+	metaDescription: metaDescriptionSchema,
 	variants: z.array(productVariantSchema).optional(),
 })
 
@@ -80,33 +71,15 @@ export const createProductSchema = z.object({
  * Schéma de validation pour la mise à jour d'un produit
  */
 export const updateProductSchema = z.object({
-	categoryId: z.cuid('ID de catégorie invalide').optional(),
-	name: z
-		.string()
-		.min(1, 'Le nom est requis')
-		.max(255, 'Le nom ne peut pas dépasser 255 caractères')
-		.trim()
-		.optional(),
-	slug: z
-		.string()
-		.min(1, 'Le slug est requis')
-		.max(255, 'Le slug ne peut pas dépasser 255 caractères')
-		.regex(
-			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-			'Le slug doit être en minuscules et ne peut contenir que des lettres, chiffres et tirets'
-		)
-		.trim()
-		.optional(),
-	description: z.string().optional(),
-	basePrice: z.number().min(0, 'Le prix de base doit être positif').optional(),
-	price: z.number().min(0, 'Le prix doit être positif').optional(),
-	images: z.array(z.string().url("URL d'image invalide")).optional(),
-	isActive: z.boolean().optional(),
-	metaTitle: z.string().max(60, 'Le meta titre ne peut pas dépasser 60 caractères').optional(),
-	metaDescription: z
-		.string()
-		.max(160, 'La meta description ne peut pas dépasser 160 caractères')
-		.optional(),
+	categoryId: cuidSchema.optional(),
+	name: nameLongSchema.optional(),
+	slug: slugSchema.optional(),
+	description: descriptionSchema.optional(),
+	basePrice: priceSchema.optional(),
+	price: priceSchema.optional(),
+	images: imagesSchema.optional(),
+	metaTitle: metaTitleSchema.optional(),
+	metaDescription: metaDescriptionSchema.optional(),
 	variants: z.array(productVariantSchema).optional(),
 })
 
@@ -114,15 +87,15 @@ export const updateProductSchema = z.object({
  * Schéma de validation pour les paramètres de route
  */
 export const productIdSchema = z.object({
-	id: z.cuid('ID de produit invalide'),
+	id: cuidSchema,
 })
 
 export const relatedSchema = z.object({
-	limit: z.coerce.number().int().min(1).max(100).default(20),
+	limit: limitSchema,
 })
 
-export const limitSchema = z.object({
-	limit: z.coerce.number().int().min(1).max(100).default(20),
+export const featuredSchema = z.object({
+	limit: limitSchema,
 })
 
 export const productSlugSchema = z.object({
@@ -139,6 +112,6 @@ export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>
 export type ProductIdInput = z.infer<typeof productIdSchema>
 export type RelatedInput = z.infer<typeof relatedSchema>
-export type LimitInput = z.infer<typeof limitSchema>
+export type FeaturedInput = z.infer<typeof featuredSchema>
 export type ProductSlugInput = z.infer<typeof productSlugSchema>
 export type CategorySlugInput = z.infer<typeof categorySlugSchema>

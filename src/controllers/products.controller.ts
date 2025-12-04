@@ -1,16 +1,13 @@
 /**
- * EXEMPLE DE CONTROLLER D'AUTHENTIFICATION
- * Renommer en auth.controller.ts pour l'utiliser
+ * Products Controller
  */
 
 import type {
 	CategorySlugInput,
 	CreateProductInput,
 	FilterInput,
-	LimitInput,
 	ProductIdInput,
 	ProductSlugInput,
-	RelatedInput,
 	UpdateProductInput,
 } from '@/validators/products.validator'
 import * as productsService from '../services/products.service'
@@ -18,18 +15,18 @@ import { asyncHandler } from '../utils/asyncHandler'
 import { sendSuccess } from '../utils/response'
 
 /**
- * Récupérer tous les produits
+ * Get all products
  */
-export const getAll = asyncHandler<{ query: FilterInput }>(async (req, res) => {
-	const query = req.query
+export const getAll = asyncHandler<{ body: FilterInput }>(async (req, res) => {
+	const filters = req.body
 
-	const result = await productsService.getAll(query)
+	const result = await productsService.getAll(filters)
 
-	sendSuccess(res, result, 'Produits récupérés avec succès !')
+	sendSuccess(res, result, 'Products retrieved successfully !')
 })
 
 /**
- * Récupérer un produit
+ * Get a product
  */
 export const getOne = asyncHandler<{
 	params: ProductSlugInput
@@ -38,11 +35,11 @@ export const getOne = asyncHandler<{
 
 	const result = await productsService.getOne(slug)
 
-	sendSuccess(res, result, 'Produit récupéré avec succès !')
+	sendSuccess(res, result, 'Product retrieved successfully !')
 })
 
 /**
- * Créer un produit
+ * Create a product
  */
 export const createProduct = asyncHandler<{
 	body: CreateProductInput
@@ -51,11 +48,11 @@ export const createProduct = asyncHandler<{
 
 	const result = await productsService.create(data)
 
-	sendSuccess(res, result, 'Produit créé avec succès !')
+	sendSuccess(res, result, 'Product created successfully !')
 })
 
 /**
- * Mettre à jour un produit
+ * Update a product
  */
 export const updateProduct = asyncHandler<{
 	body: UpdateProductInput
@@ -67,11 +64,11 @@ export const updateProduct = asyncHandler<{
 
 	const result = await productsService.update(id, data)
 
-	sendSuccess(res, result, 'Produit mis à jour avec succès !')
+	sendSuccess(res, result, 'Product updated successfully')
 })
 
 /**
- * Supprimer un produit
+ * Delete a product
  */
 export const deleteProduct = asyncHandler<{
 	params: ProductIdInput
@@ -80,11 +77,11 @@ export const deleteProduct = asyncHandler<{
 
 	const result = await productsService.remove(id)
 
-	sendSuccess(res, result, 'Produit supprimé avec succès !')
+	sendSuccess(res, result, 'Product deleted successfully !')
 })
 
 /**
- * Récupérer les produits par catégorie
+ * Get products by category
  */
 export const getByCategory = asyncHandler<{
 	params: CategorySlugInput
@@ -96,34 +93,36 @@ export const getByCategory = asyncHandler<{
 
 	const result = await productsService.getByCategory(categorySlug, query)
 
-	sendSuccess(res, result, 'Produits récupérés avec succès !')
+	sendSuccess(res, result, 'Products retrieved successfully !')
 })
 
 /**
- * Récupérer les produits en vedette
+ * Get featured products
  */
-export const getFeatured = asyncHandler<{
-	query: LimitInput
-}>(async (req, res) => {
-	const limit = req.query?.limit
+export const getFeatured = asyncHandler(async (_req, res) => {
+	const result = await productsService.getFeatured()
 
-	const result = await productsService.getFeatured(limit)
-
-	sendSuccess(res, result, 'Produits en vedette récupérés avec succès !')
+	sendSuccess(res, result, 'Featured products retrieved successfully !')
 })
 
 /**
- * Récupérer les produits similaires
+ * Get related products
  */
 export const getRelated = asyncHandler<{
-	params: ProductIdInput
-	query: RelatedInput
+	params: ProductSlugInput
 }>(async (req, res) => {
-	const { id } = req.params
+	const { slug } = req.params
 
-	const limit = req.query?.limit
+	const result = await productsService.getRelated(slug)
 
-	const result = await productsService.getRelated(id, limit)
+	sendSuccess(res, result, 'Related products retrieved successfully !')
+})
 
-	sendSuccess(res, result, 'Produits similaires récupérés avec succès !')
+/**
+ * Get most recent discounted product
+ */
+export const getRecentDiscount = asyncHandler(async (_req, res) => {
+	const result = await productsService.getRecentDiscount()
+
+	sendSuccess(res, result, 'Product retrieved successfully !')
 })

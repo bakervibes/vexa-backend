@@ -9,10 +9,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// ============================================
-// USERS & AUTH
-// ============================================
-
 model users {
   id            String    @id @default(cuid())
   name          String
@@ -21,44 +17,39 @@ model users {
   phone         String?
   emailVerified DateTime?
   image         String?
-  role          Role      @default(USER)
-  isActive      Boolean   @default(true)
-
-  // OAuth providers
-  provider   String?
-  providerId String?
+  role          Role
+  isActive      Boolean
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  addresses   addresses[]
-  orders      orders[]
-  cart        carts?            @relation(fields: [cartId], references: [id])
-  reviews     product_reviews[]
-  cartId      String?
-  wishlists   wishlists?        @relation(fields: [wishlistsId], references: [id])
-  wishlistsId String?
+  carts              carts?
+  wishlists          wishlists?
+  addresses          addresses[]
+  orders             orders[]
+  reviews            product_reviews[]
+  productReviewLikes product_review_likes[]
 
   @@index([email])
 }
 
 model addresses {
-  id         String      @id @default(cuid())
-  userId     String
-  type       AddressType @default(SHIPPING) // SHIPPING, BILLING
-  name       String // Contact name for this address
-  street     String
-  city       String
-  postalCode String?
-  country    String
-  phone      String?
-  isDefault  Boolean     @default(false)
-
-  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  userId    String
+  name      String
+  email     String
+  phone     String
+  street    String
+  city      String
+  country   String
+  isDefault Boolean
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  user   users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders orders[]
 
   @@index([userId])
 }
@@ -68,40 +59,38 @@ model password_resets {
   email     String
   token     String   @unique
   expiresAt DateTime
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([email])
 }
-
-// ============================================
-// PRODUCTS & CATALOG
-// ============================================
 
 model attributes {
   id       String  @id @default(cuid())
   name     String
   slug     String  @unique
-  isActive Boolean @default(true)
-
-  options options[]
+  isActive Boolean
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  options options[]
 
   @@index([slug])
 }
 
 model options {
   id          String  @id @default(cuid())
+  attributeId String
   name        String
   slug        String  @unique
-  attributeId String
-  isActive    Boolean @default(true)
+  isActive    Boolean
 
-  attribute attributes @relation(fields: [attributeId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdAt             DateTime                 @default(now())
-  updatedAt             DateTime                 @updatedAt
+  attribute             attributes               @relation(fields: [attributeId], references: [id])
   productVariantOptions product_variant_option[]
 
   @@index([slug])
@@ -112,16 +101,17 @@ model categories {
   name        String
   slug        String  @unique
   description String?
-  image       String?
+  image       String
+  position    Json
   parentId    String?
-  isActive    Boolean @default(true)
+  isActive    Boolean
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   parent   categories?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children categories[] @relation("CategoryHierarchy")
   products products[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@index([slug])
 }
@@ -132,25 +122,22 @@ model products {
   name        String
   slug        String    @unique
   description String?   @db.Text
+  sku         String
   basePrice   Float?
   price       Float?
+  stock       Int
   expiresAt   DateTime?
   images      String[]
-  isActive    Boolean   @default(true)
+  isActive    Boolean
 
-  // SEO
-  metaTitle       String?
-  metaDescription String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  category categories?        @relation(fields: [categoryId], references: [id])
-  variants product_variants[]
-  reviews  product_reviews[]
-
-  createdAt             DateTime                 @default(now())
-  updatedAt             DateTime                 @updatedAt
-  productVariantOptions product_variant_option[]
-  cartItems             cart_items[]
-  wishlistItems         wishlist_items[]
+  category      categories?        @relation(fields: [categoryId], references: [id])
+  variants      product_variants[]
+  reviews       product_reviews[]
+  cartItems     cart_items[]
+  wishlistItems wishlist_items[]
 
   @@index([slug])
   @@index([categoryId])
@@ -159,19 +146,18 @@ model products {
 model product_variants {
   id        String    @id @default(cuid())
   productId String
-  sku       String    @unique
+  sku       String
   basePrice Float
   price     Float?
   expiresAt DateTime?
-  stock     Int       @default(0)
-  isActive  Boolean   @default(true)
+  stock     Int
+  isActive  Boolean
 
-  product     products      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  cart_items  cart_items[]
-  order_items order_items[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdAt             DateTime                 @default(now())
-  updatedAt             DateTime                 @updatedAt
+  product               products                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cart_items            cart_items[]
   productVariantOptions product_variant_option[]
   wishlistItems         wishlist_items[]
 
@@ -182,87 +168,103 @@ model product_variant_option {
   id        String @id @default(cuid())
   variantId String
   optionId  String
-  productId String
-
-  product products         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variant product_variants @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  option  options          @relation(fields: [optionId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  variant product_variants @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  option  options          @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, optionId])
+  @@index([variantId])
+  @@index([optionId])
 }
 
 model product_reviews {
   id         String  @id @default(cuid())
   productId  String
   userId     String
-  rating     Int // 1-5
+  rating     Int
   comment    String? @db.Text
-  isApproved Boolean @default(false)
-
-  product products @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isApproved Boolean
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  product            products               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user               users                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productReviewLikes product_review_likes[]
 
   @@index([productId])
   @@index([userId])
 }
 
-// ============================================
-// CART
-// ============================================
-
-model carts {
-  id        String  @id @default(cuid())
-  userId    String? @unique // Optional for guest carts
-  sessionId String? @unique // For guest tracking
-
-  items cart_items[]
+model product_review_likes {
+  id       String     @id @default(cuid())
+  reviewId String
+  userId   String
+  type     ReviewLike
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  users     users[]
+
+  review product_reviews @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   users           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([userId])
+}
+
+model carts {
+  id        String  @id @default(cuid())
+  userId    String? @unique
+  sessionId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users users?       @relation(fields: [userId], references: [id])
+  items cart_items[]
 
   @@index([userId])
   @@index([sessionId])
+  @@index([userId, sessionId])
 }
 
 model cart_items {
-  id        String  @id @default(cuid())
+  id        String  @id @unique @default(cuid())
   cartId    String
   productId String
   variantId String?
-  quantity  Int     @default(1)
+  quantity  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   cart    carts             @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product products          @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant product_variants? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([cartId, variantId])
+  @@index([cartId, productId, variantId])
+  @@index([cartId])
+  @@index([productId])
+  @@index([variantId])
 }
-
-// ============================================
-// CART
-// ============================================
 
 model wishlists {
   id        String  @id @default(cuid())
-  userId    String? @unique // Optional for guest wishlists
-  sessionId String? @unique // For guest tracking
-
-  items wishlist_items[]
+  userId    String? @unique
+  sessionId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  users     users[]
+
+  users users?           @relation(fields: [userId], references: [id])
+  items wishlist_items[]
 
   @@index([userId])
   @@index([sessionId])
+  @@index([userId, sessionId])
 }
 
 model wishlist_items {
@@ -270,102 +272,96 @@ model wishlist_items {
   wishlistId String
   productId  String
   variantId  String?
-  quantity   Int     @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   wishlist wishlists         @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
   product  products          @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant  product_variants? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
+  @@unique([wishlistId, productId, variantId])
+  @@index([wishlistId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+model coupons {
+  id         String     @id @default(cuid())
+  code       String
+  value      Float
+  type       CouponType
+  usageLimit Int?
+  expiresAt  DateTime?
+  isActive   Boolean
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([wishlistId, variantId])
-}
+  orders orders[]
 
-// ============================================
-// ORDERS
-// ============================================
+  @@index([code])
+  @@index([expiresAt])
+}
 
 model orders {
   id           String      @id @default(cuid())
   userId       String
+  addressId    String
+  couponId     String?
   orderNumber  String      @unique
-  status       OrderStatus @default(PENDING)
+  status       OrderStatus
   totalAmount  Float
-  shippingCost Float       @default(0)
-  taxAmount    Float       @default(0)
-  currency     String      @default("EUR")
-
-  // Snapshot of addresses at time of order
-  shippingAddress Json
-  billingAddress  Json
-
-  user     users         @relation(fields: [userId], references: [id])
-  items    order_items[]
-  payments payments[]
+  shippingCost Float
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  user     users         @relation(fields: [userId], references: [id])
+  address  addresses     @relation(fields: [addressId], references: [id])
+  coupon   coupons?      @relation(fields: [couponId], references: [id])
+  items    order_items[]
+  payments payments[]
 
   @@index([userId])
   @@index([orderNumber])
 }
 
 model order_items {
-  id        String  @id @default(cuid())
-  orderId   String
-  productId String
-  variantId String?
-
-  // Snapshot data
-  data     Json
-  price    Float
-  quantity Int
-
-  order   orders            @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variant product_variants? @relation(fields: [variantId], references: [id])
+  id      String @id @default(cuid())
+  orderId String
+  data    Json
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
 }
 
-// ============================================
-// PAYMENTS
-// ============================================
-
 model payments {
   id            String          @id @default(cuid())
   orderId       String
-  provider      PaymentProvider // STRIPE, PAYPAL
+  provider      PaymentProvider
   transactionId String?         @unique
   amount        Float
-  currency      String          @default("EUR")
-  status        PaymentStatus   @default(PENDING)
+  status        PaymentStatus
   metadata      Json?
-
-  order orders @relation(fields: [orderId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  order orders @relation(fields: [orderId], references: [id])
 
   @@index([orderId])
   @@index([transactionId])
 }
 
-// ============================================
-// ENUMS
-// ============================================
-
 enum Role {
   USER
   ADMIN
   MANAGER
-}
-
-enum AddressType {
-  SHIPPING
-  BILLING
 }
 
 enum OrderStatus {
@@ -388,4 +384,14 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+enum ReviewLike {
+  LIKE
+  DISLIKE
 }

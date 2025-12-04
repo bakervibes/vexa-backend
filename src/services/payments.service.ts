@@ -2,7 +2,7 @@
  * Payment Service
  */
 
-import type { CreatePaymentIntentInput } from '@/validators/payment.validator'
+import type { CreatePaymentIntentInput } from '@/validators/payments.validator'
 import { prisma } from '../config/database'
 import { BadRequestError, NotFoundError } from '../utils/ApiError'
 
@@ -23,21 +23,21 @@ export const createPaymentIntent = async (userId: string, data: CreatePaymentInt
 	})
 
 	if (!order) {
-		throw new NotFoundError('Order not found')
+		throw new NotFoundError('Order not found !')
 	}
 
 	if (order.userId !== userId) {
-		throw new BadRequestError('Not authorized to pay for this order')
+		throw new BadRequestError('Not authorized to pay for this order !')
 	}
 
 	if (order.status === 'CANCELLED' || order.status === 'REFUNDED') {
-		throw new BadRequestError('Cannot pay for cancelled or refunded order')
+		throw new BadRequestError('Cannot pay for cancelled or refunded order !')
 	}
 
 	// Check if already paid
 	const completedPayment = order.payments.find((p) => p.status === 'COMPLETED')
 	if (completedPayment) {
-		throw new BadRequestError('Order is already paid')
+		throw new BadRequestError('Order is already paid !')
 	}
 
 	// Mock payment intent creation
@@ -69,7 +69,6 @@ export const createPaymentIntent = async (userId: string, data: CreatePaymentInt
 	return {
 		clientSecret,
 		amount: order.totalAmount,
-		currency: order.currency,
 	}
 }
 
@@ -94,11 +93,11 @@ export const getPaymentStatus = async (orderId: string, userId: string) => {
 	})
 
 	if (!order) {
-		throw new NotFoundError('Order not found')
+		throw new NotFoundError('Order not found !')
 	}
 
 	if (order.userId !== userId) {
-		throw new BadRequestError('Not authorized to view this order')
+		throw new BadRequestError('Not authorized to view this order !')
 	}
 
 	return order.payments

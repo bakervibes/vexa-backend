@@ -12,15 +12,21 @@ import { requestLogger } from './middlewares/requestLogger.middleware'
 import { logger } from './utils/logger'
 
 // Import des routes
+import addressRouter from './routes/addresses.route'
 import authRouter from './routes/auth.routes'
 import cartRouter from './routes/carts.route'
+import categoriesRouter from './routes/categories.routes'
+import couponRouter from './routes/coupons.route'
+import filtersRouter from './routes/filters.routes'
 import healthRouter from './routes/health.routes'
 import orderRouter from './routes/orders.route'
 import paymentRouter from './routes/payments.route'
 import productsRouter from './routes/products.routes'
 import reviewRouter from './routes/reviews.route'
-// import userRouter from './routes/user.routes';
-// Ajoutez vos routes ici
+import uploadthingRouter from './routes/uploadthing.route'
+import userRouter from './routes/users.route'
+import wishlistRouter from './routes/wishlists.route'
+import { connectRedis } from './utils/redis'
 
 /**
  * Crée et configure l'application Express
@@ -73,6 +79,9 @@ export const createApp = (): Application => {
 	// Routes produits
 	app.use(`${config.server.apiPrefix}/products`, productsRouter)
 
+	// Routes catégories
+	app.use(`${config.server.apiPrefix}/categories`, categoriesRouter)
+
 	// Routes panier
 	app.use(`${config.server.apiPrefix}/carts`, cartRouter)
 
@@ -84,6 +93,24 @@ export const createApp = (): Application => {
 
 	// Routes paiements
 	app.use(`${config.server.apiPrefix}/payments`, paymentRouter)
+
+	// Routes wishlist
+	app.use(`${config.server.apiPrefix}/wishlists`, wishlistRouter)
+
+	// Routes coupons
+	app.use(`${config.server.apiPrefix}/coupons`, couponRouter)
+
+	// Routes addresses
+	app.use(`${config.server.apiPrefix}/addresses`, addressRouter)
+
+	// Routes filters (for shop filters: categories, attributes/options, price range)
+	app.use(`${config.server.apiPrefix}/filters`, filtersRouter)
+
+	// Routes users (profile management)
+	app.use(`${config.server.apiPrefix}/users`, userRouter)
+
+	// Routes uploadthing (file uploads)
+	app.use(`${config.server.apiPrefix}/uploadthing`, uploadthingRouter)
 
 	// ============ Gestion des erreurs ============
 
@@ -103,6 +130,9 @@ export const startServer = async (): Promise<void> => {
 	try {
 		// Connexion à la base de données
 		await connectDatabase()
+
+		// Connexion à Redis
+		await connectRedis()
 
 		// Créer l'application
 		const app = createApp()
@@ -127,6 +157,10 @@ export const startServer = async (): Promise<void> => {
 				try {
 					const { disconnectDatabase } = await import('./config/database')
 					await disconnectDatabase()
+
+					const { disconnectRedis } = await import('./utils/redis')
+					await disconnectRedis()
+
 					logger.success('Arrêt propre terminé')
 					process.exit(0)
 				} catch (error) {

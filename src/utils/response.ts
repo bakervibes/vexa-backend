@@ -1,8 +1,5 @@
 import type { Response } from 'express'
 
-/**
- * Format de réponse API standardisé
- */
 export interface ApiResponse<T = any> {
 	success: boolean
 	message: string
@@ -14,9 +11,6 @@ export interface ApiResponse<T = any> {
 	timestamp: string
 }
 
-/**
- * Helper pour envoyer des réponses success standardisées
- */
 export const sendSuccess = <T>(
 	res: Response,
 	data: T,
@@ -33,9 +27,6 @@ export const sendSuccess = <T>(
 	return res.status(statusCode).json(response)
 }
 
-/**
- * Helper pour envoyer des réponses error standardisées
- */
 export const sendError = (
 	res: Response,
 	message: string,

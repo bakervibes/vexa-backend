@@ -1,17 +1,18 @@
 import { z } from 'zod'
+import { cuidSchema } from './common.schemas'
 
 /**
  * Schema for creating a payment intent
  */
 export const createPaymentIntentSchema = z.object({
-	orderId: z.string().cuid('Invalid order ID'),
+	orderId: cuidSchema,
 })
 
 /**
  * Schema for order ID parameter
  */
 export const orderIdSchema = z.object({
-	orderId: z.string().cuid('Invalid order ID'),
+	orderId: cuidSchema,
 })
 
 // Types

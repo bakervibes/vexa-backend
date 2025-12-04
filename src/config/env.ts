@@ -19,6 +19,9 @@ const envSchema = z.object({
 	// Base de données
 	DATABASE_URL: z.url('DATABASE_URL doit être une URL valide'),
 
+	// Redis
+	REDIS_URL: z.string().default('redis://localhost:6379'),
+
 	// JWT
 	JWT_SECRET: z.string().min(32, 'JWT_SECRET doit contenir au moins 32 caractères'),
 	JWT_EXPIRES_IN: z.string().default('7d'),
@@ -38,6 +41,9 @@ const envSchema = z.object({
 	// Autres
 	API_PREFIX: z.string().default('/api'),
 	LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
+
+	// UploadThing
+	UPLOADTHING_TOKEN: z.string().min(1, 'UPLOADTHING_TOKEN doit contenir au moins 1 caractère'),
 })
 
 /**
@@ -82,6 +88,10 @@ export const config = {
 		url: env.DATABASE_URL,
 	},
 
+	redis: {
+		url: env.REDIS_URL,
+	},
+
 	jwt: {
 		secret: env.JWT_SECRET,
 		expiresIn: env.JWT_EXPIRES_IN,
@@ -100,5 +110,9 @@ export const config = {
 
 	log: {
 		level: env.LOG_LEVEL,
+	},
+
+	uploadthing: {
+		token: env.UPLOADTHING_TOKEN,
 	},
 } as const

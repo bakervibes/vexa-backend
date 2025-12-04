@@ -5,21 +5,22 @@ import { sendSuccess } from '@/utils/response'
 import type { LoginInput, RefreshTokenInput, RegisterInput } from '@/validators/auth.validator'
 
 /**
- * Créer un nouveau compte
+ * Create a new account
  * POST /auth/register
  */
 export const register = asyncHandler<{
 	body: RegisterInput
 }>(async (req, res) => {
 	const data = req.body
+	const sessionId = req.headers['x-session-id'] as string | undefined
 
-	const result = await authService.register(data)
+	const result = await authService.register(data, sessionId)
 
-	sendSuccess(res, result, 'Compte créé avec succès', 201)
+	sendSuccess(res, result, 'Account created successfully', 201)
 })
 
 /**
- * Se connecter
+ * Sign in
  * POST /auth/login
  */
 export const login = asyncHandler<{
@@ -29,11 +30,11 @@ export const login = asyncHandler<{
 
 	const result = await authService.login(data)
 
-	sendSuccess(res, result, 'Connexion réussie')
+	sendSuccess(res, result, 'Login successful')
 })
 
 /**
- * Rafraîchir le token
+ * Refresh token
  * POST /auth/refresh
  */
 export const refreshToken = asyncHandler<{
@@ -43,28 +44,28 @@ export const refreshToken = asyncHandler<{
 
 	const result = await authService.refreshAccessToken(data)
 
-	sendSuccess(res, result, 'Token rafraîchi')
+	sendSuccess(res, result, 'Token refreshed')
 })
 
 /**
- * Se déconnecter
+ * Sign out
  * POST /auth/logout
  */
 export const logout = asyncHandler(async (_req, res) => {
-	// Implémente une blacklist de tokens si nécessaire
-	sendSuccess(res, null, 'Déconnexion réussie')
+	// Implement token blacklist if needed
+	sendSuccess(res, null, 'Logout successful')
 })
 
 /**
- * Obtenir les infos de l'utilisateur connecté
+ * Get current user info
  * GET /auth/me
  */
 export const getMe = asyncHandler(async (req, res) => {
 	if (!req.user) {
-		throw new UnauthorizedError('Non authentifié')
+		throw new UnauthorizedError('Not authenticated !')
 	}
 
 	const { password: _password, ...userWithoutPassword } = req.user
 
-	sendSuccess(res, userWithoutPassword, 'Utilisateur récupéré')
+	sendSuccess(res, userWithoutPassword, 'User retrieved')
 })
